@@ -1,18 +1,20 @@
 <template>
-  <el-table 
-  :data="tableData" 
+  <el-table
+  :data="tableData"
   :height="height"
   :cell-style="cell_style"
-  border 
+  border
   stripe
   v-loading="loading"
   @cell-click="cellClick"
   @cell-dblclick="cellDblclick">
-    <el-table-column 
-    :prop="item.prop" 
-    :label="item.label" 
-    sortable 
-    v-for="(item,index) in tableHeader" 
+    <el-table-column
+    :prop="item.prop"
+    :label="item.label"
+	:align="item.align"
+	:width="item.width"
+    sortable
+    v-for="(item,index) in tableHeader"
     :key="index"
     v-bind:formatter="item.formatter">
     <!--:class-name="item.class"-->

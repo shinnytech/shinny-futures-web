@@ -20,10 +20,13 @@ function FormatDateTime(UnixTime) {
 
 export const quoteHeader = [{
     prop: "instrument_id",
-    label: "合约代码"
+    label: "合约代码",
+	align: "left",
+	width: 200,
 }, {
     prop: "last_price",
-    label: "最新价"
+    label: "最新价",
+	align: "right",
 }, {
     prop: "datetime",
     label: "时间",
@@ -35,19 +38,24 @@ export const quoteHeader = [{
     },
 }, {
     prop: "bid_price1",
-    label: "买价"
+    label: "买价",
+	align: "right",
 }, {
     prop: "ask_price1",
-    label: "卖价"
+    label: "卖价",
+	align: "right",
 }, {
     prop: "bid_volume1",
-    label: "买量"
+    label: "买量",
+	align: "right",
 }, {
     prop: "ask_volume1",
-    label: "卖量"
+    label: "卖量",
+	align: "right",
 }, {
     prop: "change",
     label: "涨跌",
+	align: "right",
     formatter: function (row, column) {
         try {
             return (row.change).toFixed(2);
@@ -57,6 +65,7 @@ export const quoteHeader = [{
 }, {
     prop: "change_percent",
     label: "涨跌幅",
+	align: "right",
     formatter: function (row, column) {
         try {
             return (row.change_percent * 100).toFixed(2) + '%';
@@ -65,31 +74,40 @@ export const quoteHeader = [{
     }
 }, {
     prop: "volume",
-    label: "成交量"
+    label: "成交量",
+	align: "right",
 }, {
     prop: "open",
-    label: "今开盘"
+    label: "今开盘",
+	align: "right",
 }, {
     prop: "highest",
-    label: "最高价"
+    label: "最高价",
+	align: "right",
 }, {
     prop: "lowest",
-    label: "最低价"
+    label: "最低价",
+	align: "right",
 }, {
     prop: "open_interest",
-    label: "持仓量"
+    label: "持仓量",
+	align: "right",
 }, {
     prop: "lowest",
-    label: "最低价"
+    label: "最低价",
+	align: "right",
 }, {
     prop: "pre_open_interest",
-    label: "昨持"
+    label: "昨持",
+	align: "right",
 }, {
     prop: "pre_close",
-    label: "昨收"
+    label: "昨收",
+	align: "right",
 }, {
     prop: "pre_settlement",
-    label: "昨结算"
+    label: "昨结算",
+	align: "right",
 }]
 
 
