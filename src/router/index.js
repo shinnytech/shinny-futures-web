@@ -2,7 +2,6 @@ import Vue from 'vue'
 import router from 'vue-router'
 import Index from "../view/Index.vue";
 import login from "../view/login.vue";
-import highStock from "../view/highStock.vue";
 import trade from "../view/trade.vue";
 import stock from "../components/TradeView/index.vue";
 

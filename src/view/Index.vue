@@ -2,7 +2,6 @@
 	<div>
 		<NAV />
 		<el-container style="min-height:100%; border: 1px solid #eee">
-			<!-- <sideBar /> -->
 			<el-main>
 				<section id="first-wrap">
 					<div class="first-wrap__child" v-if="!showStcok">
@@ -26,10 +25,8 @@
 
 <script>
 	import NAV from "../components/nav";
-	import sideBar from "../components/sideBar";
 	import mTable from "../components/table";
 	import mTrade from "./trade";
-	//import axios from "../http/index";
 	import axios from "axios";
 	import {
 		quoteHeader
@@ -45,7 +42,6 @@
 
 	export default {
 		components: {
-			sideBar,
 			mTable,
 			NAV,
 			mTrade,
