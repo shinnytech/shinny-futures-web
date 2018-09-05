@@ -1,7 +1,7 @@
 <template>
     <el-menu :default-active="activeIndex2" class="el-menu-demo" mode="horizontal" @select="handleSelect">
         <el-menu-item id="brand"  index="1">
-            <router-link  to="/">天勤衍生品研究</router-link>
+            <router-link  to="/">ShinnyFutureWeb</router-link>
         </el-menu-item>
         <el-menu-item index="2" style="float:right;">
             <div v-if="judge_login"><router-link to="/login">{{loginStatus}}</router-link></div>
