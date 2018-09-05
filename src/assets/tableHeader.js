@@ -113,7 +113,8 @@ export const quoteHeader = [{
 
 export const orderHeader = [{
     prop: "instrument_id",
-    label: "合约代码"
+    label: "合约代码",
+	align: "left"
 }, {
     prop: "direction",
     label: "买卖",
@@ -149,81 +150,90 @@ export const orderHeader = [{
     }
 }, {
     prop: "limit_price",
-    label: "报单价格"
+    label: "报单价格",
+	align: "right",
 }, {
     prop: "volume_orign",
-    label: "报单手数"
+    label: "报单手数",
+	align: "right",
 }, {
     prop: "volume_left",
-    label: "未成交"
-}, {
-    prop: "volume_orign", //TODO：成交手数的定义有问题
-    label: "成交手数",
-    formatter: function (row, column) {
-        return row.volume_orign - row.volume_left;
-    }
+    label: "未成交",
+	align: "right",
 }, {
     prop: "order_id",
-    label: "报单编号"
+    label: "报单编号",
+	align: "left",
 }, {
     prop: "insert_date_time",
     label: "报单时间",
+	align: "right",
     formatter: function (row, column) {
         return FormatDateTime(row.insert_date_time);
-    }
+    },
+	width: 200,
 }]
 
 export const accountHeader = [{
     prop: "static_balance",
     label: "静态权益",
+	align: "right",
     formatter: function (row, column) {
         return (row.static_balance).toFixed(2);
     }
 }, {
     prop: "close_profit",
     label: "平仓盈亏",
+	align: "right",
     formatter: function (row, column) {
         return (row.close_profit).toFixed(2);
     }
 }, {
     prop: "position_profit",
     label: "持仓盈亏",
+	align: "right",
     formatter: function (row, column) {
         return (row.position_profit).toFixed(2);
     }
 }, {
     prop: "commission",
     label: "手续费",
+	align: "right",
     formatter: function (row, column) {
         return (row.commission).toFixed(2);
     }
 }, {
     prop: "balance",
     label: "动态权益",
+	align: "right",
     formatter: function (row, column) {
         return (row.balance).toFixed(2);
     }
 }, {
     prop: "margin",
     label: "占用保证金",
+	align: "right",
     formatter: function (row, column) {
         return (row.margin).toFixed(2);
     }
 }, {
     prop: "frozen_margin",
     label: "下单冻结",
+	align: "right",
     formatter: function (row, column) {
         return (row.frozen_margin).toFixed(2);
     }
 }, {
     prop: "available",
     label: "可用资金",
+	align: "right",
     formatter: function (row, column) {
         return (row.available).toFixed(2);
     }
 }, {
     prop: "risk_ratio",
     label: "风险度",
+	align: "right",
     formatter: function (row, column) {
         return (row.risk_ratio * 100).toFixed(2) + '%';
     }
@@ -250,6 +260,7 @@ export const positionHeader = [{
 }, {
     prop: "volume_long",
     label: "持仓手数",
+	align: "right",
     formatter: function (row, column) {
         if (row.volume_long > 0 && row.volume_short == 0)
             return row.volume_long;
@@ -265,6 +276,7 @@ export const positionHeader = [{
 }, {
     prop: "volume_short",
     label: "开仓均价",
+	align: "right",
     formatter: function (row, column) {
         if (row.volume_long > 0 && row.volume_short == 0)
             return row.open_price_long;
@@ -279,15 +291,18 @@ export const positionHeader = [{
     }
 }, {
     prop: "last_price",
+	align: "right",
     label: "最新价"
 }, {
     prop: "hedge_flag",
+	align: "right",
     label: "持仓盈亏",
     formatter: function (row, column) {
         return (row.float_profit_long + row.float_profit_short).toFixed(2);
     }
 }, {
     prop: "margin",
+	align: "right",
     label: "持仓占用",
     formatter: function (row, column) {
         return (row.margin_long + row.margin_short).toFixed(2);
@@ -311,12 +326,15 @@ export const tradeHeader = [{
     }
 }, {
     prop: "price",
+	align: "right",
     label: "成交价格"
 }, {
     prop: "volume",
+	align: "right",
     label: "手数"
 }, {
     prop: "trade_date_time",
+	align: "right",
     label: "成交时间",
     formatter: function (row, column) {
         return FormatDateTime(row.trade_date_time);
