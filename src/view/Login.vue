@@ -67,58 +67,27 @@
 
 			check_login() {
 				this.peek_message();
-
-				var notify_data = tr_TQ.dm.datas.notify;
-				if (notify_data === undefined) {
+				console.log("check_login:" + this.user.user_name);
+				var session_data = tr_TQ.dm.get("trade", this.user.user_name, "session");
+				if (session_data === undefined) {
 					setTimeout(() => this.check_login(), 1000);
 					return 0;
 				}
+				this.login_success = true;
 
-				for (var t in notify_data) {
-					var notify = notify_data[t];
-					if (
-						notify.content === "已经连接到交易前置" &&
-						!this.login_connect_trade_front
-					) {
-						this.login_connect_trade_front = true;
-					} else if (notify.content === "登录成功" && !this.login_success) {
-						this.login_success = true;
-					}
-				}
-				console.log(notify_data);
+				window.account_id = this.user.user_name;
+				this.$notify({
+					title: "成功",
+					message: "登录成功",
+					type: "success"
+				});
 
-				if (
-					Object.keys(notify_data).length >= 2 &&
-					this.login_connect_trade_front &&
-					this.login_success
-				) {
-					window.account_id = this.user.user_name;
-					this.$notify({
-						title: "成功",
-						message: "登录成功",
-						type: "success"
-					});
-
-					this.$store.commit("doLogin", "evt.data.session_id");
-					this.loading = false;
-					this.$router.push({
-						path: "/"
-					});
-					return 0;
-				} else if (Object.keys(notify_data).length >= 2) {
-					var login_error_msg = this.login_connect_trade_front ?
-						"登录失败，请检查密码。" :
-						"连接交易前置失败，请检查网络。";
-					this.$notify.error({
-						title: "错误",
-						message: login_error_msg
-					});
-					this.loading = false;
-					return 0;
-				} else {
-					setTimeout(() => this.check_login(), 1000);
-					return 0;
-				}
+				this.$store.commit("doLogin", "evt.data.session_id");
+				this.loading = false;
+				this.$router.push({
+					path: "/"
+				});
+				return 0;
 			},
 
 			check_login_timeout() {
