@@ -4,7 +4,7 @@
 			<el-aside style="border-right: 1px solid rgb(238, 238, 238)">
 				<el-form ref="form" id="trade" :model="form">
 					<el-form-item label="">
-						<el-input v-model="instrumentId" clearable></el-input>
+						<el-input v-model="theinstrumentId" clearable></el-input>
 					</el-form-item>
 					<el-form-item label="手数">
 						<el-input-number v-model="form.volume" />
@@ -92,13 +92,23 @@
 				trades: [],
 				account: [],
 				init_status: false,
+				theinstrumentId: this.instrumentId,
 				theLastPrice: this.lastPrice
 			};
+		},
+		watch:{
+			instrumentId(val, oldVal){
+				this.theinstrumentId = val;
+			},
+			lastPrice(val, oldVal){
+				this.theLastPrice = val;
+			},
 		},
 		mounted() {
 			if (!this.init_status) {
 				this.register_trade_ui(1000);
 				setTimeout(() => this.peek_message(), 500);
+				setTimeout(() => this.tq_update_tr_quote(), 1000);
 			}
 
 			this.getOrderDict();
@@ -119,6 +129,11 @@
 			peek_message() {
 				tr_TQ.ws.peek_message();
 				setTimeout(() => this.peek_message(), 1000);
+			},
+
+			tq_update_tr_quote(){
+				tr_TQ.update_tr_quote(new Date().getTime(), true)
+				setTimeout(() => this.tq_update_tr_quote(), 1000);
 			},
 
 			directionFormatter(row, column) {

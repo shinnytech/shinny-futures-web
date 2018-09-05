@@ -1659,6 +1659,65 @@ class TQSDK {
         }
     }
 
+	update_tr_quote(time_now, force) {
+		if (typeof(this.trade_ui) != "undefined") {
+			if ((time_now - this.trade_ui_update_time) > this.trade_ui_update_interval) {
+				//console.log("tr_quote update");
+				this.trade_ui_update_time = time_now;
+
+				//var account_id = "046578"
+				var account_id = window.account_id
+				this.trade_ui.account = [tr_TQ.dm.datas.trade[account_id].accounts.CNY];
+
+				// tr_TQ.dm.datas.trade[account_id].orders.forEach(function (value, key, map) {
+				//     if( !this.orders_key_set.has(key) ){
+				//         this.orders_key_set.add( key );
+				//         this.orders_list.push( value );
+				//     }
+				// });
+
+				this.orders_key_set = Object.keys(tr_TQ.dm.datas.trade[account_id].orders).sort().reverse();
+				this.orders_list = [];
+				for (var i in this.orders_key_set) {
+					var value = tr_TQ.dm.datas.trade[account_id].orders[this.orders_key_set[i]]
+					if (typeof(value) == "object") {
+						this.orders_list.push(value);
+					}
+				}
+				this.trade_ui.orders = this.orders_list//.reverse();
+
+				this.positions_key_set = Object.keys(tr_TQ.dm.datas.trade[account_id].positions).sort().reverse();
+				this.positions_list = [];
+				for (var i in this.positions_key_set) {
+					var value = tr_TQ.dm.datas.trade[account_id].positions[this.positions_key_set[i]]
+					if (this.positions_key_set[i] === "undefined") {
+						continue;
+					}
+					if (typeof(value) == "object") {
+						value.volume_long = value.volume_long_his + value.volume_long_today;
+						value.volume_short = value.volume_short_his + value.volume_short_today;
+						if( value.volume_long == 0 && value.volume_short == 0 ){
+							continue
+						}
+						this.positions_list.push(value);
+					}
+				}
+				this.trade_ui.positions = this.positions_list.reverse();
+
+				this.trades_key_set = Object.keys(tr_TQ.dm.datas.trade[account_id].trades).sort().reverse();
+				this.trades_list = [];
+				for (var i in this.trades_key_set) {
+					var value = tr_TQ.dm.datas.trade[account_id].trades[this.trades_key_set[i]]
+					if (typeof(value) == "object") {
+						this.trades_list.push(value);
+					}
+				}
+				this.trade_ui.trades = this.trades_list.reverse();
+
+			}
+		}
+	}
+
     init_ws_handlers() {
         this.ws.addHandler('onmessage', (function (message) {
             switch (message.data.aid) {
@@ -1674,70 +1733,6 @@ class TQSDK {
                     break;
                 default:
                     return;
-            }
-
-            var time_now = (new Date()).getTime();
-            this.update_quote(time_now);
-
-            if( !this.tr_sign ){
-                return 0;
-            }
-
-            if (typeof(this.trade_ui) != "undefined") {
-                if ((time_now - this.trade_ui_update_time) > this.trade_ui_update_interval) {
-                    console.log(message.data);
-                    this.trade_ui_update_time = time_now;
-
-                    //var account_id = "046578"
-                    var account_id = window.account_id
-                    this.trade_ui.account = [tr_TQ.dm.datas.trade[account_id].accounts.CNY];
-
-                    // tr_TQ.dm.datas.trade[account_id].orders.forEach(function (value, key, map) {
-                    //     if( !this.orders_key_set.has(key) ){
-                    //         this.orders_key_set.add( key );
-                    //         this.orders_list.push( value );
-                    //     }
-                    // });
-
-                    this.orders_key_set = Object.keys(tr_TQ.dm.datas.trade[account_id].orders).sort().reverse();
-                    this.orders_list = [];
-                    for (var i in this.orders_key_set) {
-                        var value = tr_TQ.dm.datas.trade[account_id].orders[this.orders_key_set[i]]
-                        if (typeof(value) == "object") {
-                            this.orders_list.push(value);
-                        }
-                    }
-                    this.trade_ui.orders = this.orders_list//.reverse();
-
-                    this.positions_key_set = Object.keys(tr_TQ.dm.datas.trade[account_id].positions).sort().reverse();
-                    this.positions_list = [];
-                    for (var i in this.positions_key_set) {
-                        var value = tr_TQ.dm.datas.trade[account_id].positions[this.positions_key_set[i]]
-                        if (this.positions_key_set[i] === "undefined") {
-                            continue;
-                        }
-                        if (typeof(value) == "object") {
-                            value.volume_long = value.volume_long_his + value.volume_long_today;
-                            value.volume_short = value.volume_short_his + value.volume_short_today;
-                            if( value.volume_long == 0 && value.volume_short == 0 ){
-                                continue
-                            }
-                            this.positions_list.push(value);
-                        }
-                    }
-                    this.trade_ui.positions = this.positions_list.reverse();
-
-                    this.trades_key_set = Object.keys(tr_TQ.dm.datas.trade[account_id].trades).sort().reverse();
-                    this.trades_list = [];
-                    for (var i in this.trades_key_set) {
-                        var value = tr_TQ.dm.datas.trade[account_id].trades[this.trades_key_set[i]]
-                        if (typeof(value) == "object") {
-                            this.trades_list.push(value);
-                        }
-                    }
-                    this.trade_ui.trades = this.trades_list.reverse();
-
-                }
             }
 
 
