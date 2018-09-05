@@ -1,18 +1,9 @@
 import Vue from "vue";
 import ElementUI from "element-ui";
 import "element-ui/lib/theme-chalk/index.css";
-import App from "./App.vue";
+import App from "./app.vue";
 import router from "./router/index";
 import store from "./vuex/index";
-
-// import Tv from "./components/TradeView/script/index.js";
-//
-//
-// Vue.prototype.$iniTq = function (tq_obj) {
-//     Tv.init({ symbol: "SHFE.cu1809", interval: "1D" });
-//   const TQ = tq_obj;
-//   Tv.subscribe_tq(TQ);
-// }
 
 Vue.prototype.$tv_obj = undefined;
 

@@ -55,7 +55,7 @@
 		orderHeader,
 		positionHeader,
 		tradeHeader
-	} from "../assets/tableHeader.js";
+	} from "../assets/table-header.js";
 	import {
 		directionMap,
 		offsetMap,

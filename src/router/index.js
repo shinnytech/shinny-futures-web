@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import router from 'vue-router'
-import Index from "../view/Index.vue";
+import Index from "../view/index.vue";
 import login from "../view/login.vue";
 import trade from "../view/trade.vue";
-import stock from "../components/TradeView/index.vue";
+import stock from "../components/trade-view/index.vue";
 
 Vue.use(router)
 

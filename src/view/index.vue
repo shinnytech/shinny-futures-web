@@ -32,15 +32,15 @@
 	import axios from "axios";
 	import {
 		quoteHeader
-	} from "../assets/tableHeader.js";
+	} from "../assets/table-header.js";
 	import {
 		tag,
 		categories_map
-	} from "../assets/quoteType.js";
+	} from "../assets/quote-type.js";
 	import {
 		indexColumnColorMap
 	} from "../assets/formatter.js";
-	import stock from "../components/TradeView/index";
+	import stock from "../components/trade-view/index";
 	import ElFooter from "../../node_modules/element-ui/packages/footer/src/main.vue";
 
 	export default {
