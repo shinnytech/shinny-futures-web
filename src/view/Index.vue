@@ -1,6 +1,5 @@
 <template>
 	<div>
-		<NAV />
 		<el-container style="min-height:100%; border: 1px solid #eee">
 			<el-main>
 				<section id="first-wrap">
@@ -17,8 +16,11 @@
 					</div>
 					<img src="../assets/move.svg" @mousedown="onMove" class="move">
 				</section>
-				<mTrade v-if="ifLogin" :priceStep="priceStep" :lastPrice="lastPrice" :instrumentId="instrumentId" />
 			</el-main>
+			<el-footer>
+				<mTrade v-if="ifLogin" :priceStep="priceStep" :lastPrice="lastPrice" :instrumentId="instrumentId" />
+				<NAV v-else/>
+			</el-footer>
 		</el-container>
 	</div>
 </template>
@@ -39,9 +41,11 @@
 		indexColumnColorMap
 	} from "../assets/formatter.js";
 	import stock from "../components/TradeView/index";
+	import ElFooter from "../../node_modules/element-ui/packages/footer/src/main.vue";
 
 	export default {
 		components: {
+			ElFooter,
 			mTable,
 			NAV,
 			mTrade,
