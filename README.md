@@ -28,6 +28,7 @@ npm run dev
 
 ``` bash
 # build for production with minification
+npm install babel-preset-es2015 --save-dev
 npm run build
 ```
 
