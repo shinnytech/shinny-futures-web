@@ -2113,29 +2113,6 @@ class TQSDK {
     }
 
     init_ui() {
-        if (IsBrowser) {
-            var this_tq = this;
-            $(() => {
-                // init code
-                var lines = $('#TRADE-CODE').text().split('\n');
-                lines.forEach((el, i, arr) => lines[i] = el.replace(/\s{8}/, ''));
-                var html = hljs.highlightAuto(lines.join('\n'));
-                $('#code_container code').html(html.value);
-
-                $('#collapse').on('hide.bs.collapse', () => $('#collapse_arrow').removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down'));
-                $('#collapse').on('show.bs.collapse', () => $('#collapse_arrow').removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up'));
-
-                $(document).on('click', function (e) {
-                    // 页面 Click 事件统一处理 4 类按钮 START RESUME PAUSE END
-                    var dataSet = Object.assign({}, e.target.dataset);
-                    this_tq.tm.run({type: e.type, id: e.target.id, data: dataSet});
-                });
-                $('input').on('change', function (e) {
-                    var dataSet = Object.assign({}, e.target.dataset);
-                    this_tq.tm.run({type: e.type, id: e.target.id, data: dataSet});
-                });
-            });
-        }
     }
 
 }
@@ -2200,3 +2177,11 @@ const UiUtils = (function () {
         }
     }
 })();
+
+let sim_server_url = 'ws://openmd.shinnytech.com/t/md/front/mobile';
+let tr_server_url = 'ws://opentd.shinnytech.com/';
+
+const TQ = new TQSDK(undefined, sim_server_url, false);
+const tr_TQ = new TQSDK(undefined, tr_server_url, true);
+
+export {TQ, tr_TQ};

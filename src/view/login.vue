@@ -20,6 +20,9 @@
 	</el-container>
 </template>
 <script>
+	import {
+		tr_TQ
+	} from "../libs/tqsdk.js";
 	export default {
 		data() {
 			return {

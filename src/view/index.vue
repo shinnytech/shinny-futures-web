@@ -40,6 +40,10 @@
 	import {
 		indexColumnColorMap
 	} from "../assets/formatter.js";
+	import {
+		TQ
+	} from "../libs/tqsdk.js";
+
 	import stock from "../components/trade-view/index";
 	import ElFooter from "../../node_modules/element-ui/packages/footer/src/main.vue";
 
@@ -162,7 +166,7 @@
 							Accept: "application/json; charset=utf-8"
 						},
 						method: "GET",
-						url: info_server_url
+						url: 'http://openmd.shinnytech.com/t/md/symbols/latest.json',
 					})
 					.then(res => {
 						this.symbol_info = res.data;

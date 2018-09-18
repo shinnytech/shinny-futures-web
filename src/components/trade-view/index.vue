@@ -14,6 +14,9 @@
 import Tv from "./script";
 
 import TQSDK from "./script/tqsdk.js";
+import {
+	TQ
+} from "../../libs/tqsdk.js";
 
 import Stock from "./script/index.js";
 
