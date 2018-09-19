@@ -61,14 +61,9 @@
 			};
 		},
 		methods: {
-			peek_message() {
-				tr_TQ.ws.peek_message();
-			},
-
 			check_login() {
-				this.peek_message();
 				console.log("check_login:" + this.user.user_name);
-				var session_data = tr_TQ.dm.get("trade", this.user.user_name, "session");
+				var session_data = TQ.dm.get("trade", this.user.user_name, "session");
 				if (session_data === undefined) {
 					setTimeout(() => this.check_login(), 1000);
 					return 0;
@@ -91,7 +86,7 @@
 			},
 
 			check_login_timeout() {
-				var notify_data = tr_TQ.dm.datas.notify;
+				var notify_data = TQ.dm.datas.notify;
 				if (notify_data === undefined || notify_data.length === 0) {
 					this.$notify({
 						title: "请求超时",
@@ -154,15 +149,8 @@
 				// this.loading = false;
 				// this.$router.push({ path: "/" });
 
-				tr_TQ.ws.send_json({
-					aid: "req_login",
-					bid: bid,
-					user_name: user_name,
-					password: password
-				});
-
+				TQ.trade_login(bid, user_name, password);
 				setTimeout(() => this.check_login_timeout(), 20000);
-
 				this.check_login();
 			}
 		},

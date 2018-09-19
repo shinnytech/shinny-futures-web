@@ -107,7 +107,6 @@
 		mounted() {
 			if (!this.init_status) {
 				this.register_trade_ui(1000);
-				setTimeout(() => this.peek_message(), 500);
 				setTimeout(() => this.tq_update_tr_quote(), 1000);
 			}
 
@@ -120,19 +119,14 @@
 		methods: {
 			register_trade_ui(update_interval) {
 				const that = this;
-				tr_TQ.register_trade_ui(that, update_interval);
+				TQ.register_trade_ui(that, update_interval);
 			},
 			accountFormatter(row) {
 				return row.risk_ratio;
 			},
 
-			peek_message() {
-				tr_TQ.ws.peek_message();
-				setTimeout(() => this.peek_message(), 1000);
-			},
-
 			tq_update_tr_quote(){
-				tr_TQ.update_tr_quote(new Date().getTime(), true)
+				TQ.update_tr_quote(new Date().getTime(), true)
 				setTimeout(() => this.tq_update_tr_quote(), 1000);
 			},
 
@@ -144,13 +138,7 @@
 				console.log(row);
 			},
 			cellDblclick(row) {
-				tr_TQ.ws.send_json({
-					aid: "cancel_order", // 撤单请求
-					order_id: row.order_id,
-					user_id: window.account_id
-				});
-				console.log("cancel order : ");
-				console.log(row);
+				TQ.cancel_order(window.account_id, row.order_id);
 			},
 			RandomStr(len = 8) {
 				var charts = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split(
@@ -171,7 +159,7 @@
 			setOrder(direction, offset) {
 				console.log(this.instrumentId);
 
-				// let order = tr_TQ.INSERT_ORDER({
+				// let order = TQ.INSERT_ORDER({
 				//   symbol: this.instrumentId,
 				//   direction: direction,
 				//   offset: offset,
@@ -183,10 +171,7 @@
 					exchange_id,
 					instrument_id
 				} = ParseSymbol(this.instrumentId);
-
-				tr_TQ.ws.send_json({
-					aid: "insert_order", //必填, 下单请求
-					user_id: window.account_id, //必填, 需要与登录用户名一致, 或为登录用户的子账户(例如登录用户为user1, 则报单 user_id 应当为 user1 或 user1.some_unit)
+				TQ.insert_order({
 					order_id: "EXT" + "." + this.RandomStr(8), //必填, 委托单号, 需确保在一个账号中不重复, 限长512字节
 					exchange_id: exchange_id, //必填, 下单到哪个交易所
 					instrument_id: instrument_id, //必填, 下单合约代码
@@ -198,15 +183,9 @@
 					volume_condition: "ANY",
 					time_condition: "GFD"
 				});
-
-				// this.$notify({
-				// 	title: "成功",
-				// 	message: "下单成功",
-				// 	type: "success"
-				// });
 			},
 			getAccount() {
-				let account = tr_TQ.GET_ACCOUNT();
+				let account = TQ.GET_ACCOUNT();
 				// this.account = [
 				//   {
 				//     //核心字段
@@ -235,7 +214,7 @@
 				// ];
 			},
 			getOrderDict() {
-				var orders = tr_TQ.GET_ORDER_DICT();
+				var orders = TQ.GET_ORDER_DICT();
 				// this.orders = [
 				//   {
 				//     order_type: "TRADE", //指令类型
@@ -264,7 +243,7 @@
 				// ];
 			},
 			getPositionDict() {
-				var positions = tr_TQ.GET_POSITION();
+				var positions = TQ.GET_POSITION();
 				// this.positions = [
 				//   {
 				//     //核心字段
@@ -293,7 +272,7 @@
 				// ];
 			},
 			getTradeDict() {
-				var trades = tr_TQ.GET_TRADE_DICT();
+				var trades = TQ.GET_TRADE_DICT();
 				// this.trades = [
 				//   {
 				//     order_id: "123",

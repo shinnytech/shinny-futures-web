@@ -311,15 +311,8 @@
 				console.log("finish init_category_symbol_map");
 
 				this.setCurQuote(this.curLable);
-				setTimeout(() => this.peek_message(), 1000);
 				setTimeout(() => this.tq_update_quote(), 1000);
 				this.init_status = true;
-			},
-
-			peek_message() {
-				TQ.ws.peek_message();
-				//TQ.ws.send_json( {"aid":"peek_message"} )
-				setTimeout(() => this.peek_message(), 1000);
 			},
 
 			tq_update_quote(){
@@ -334,15 +327,6 @@
 			register_index_ui(update_interval) {
 				const that = this;
 				TQ.register_index_ui(that, update_interval);
-			},
-
-			subscribe_quote(code_list) {
-				var send_data = {
-					aid: "subscribe_quote",
-					ins_list: code_list.join()
-				};
-
-				TQ.ws.send_json(send_data);
 			},
 
 			get_code_list(tag_label) {
@@ -384,7 +368,7 @@
 				//console.log(tag_label);
 				var code_list = this.get_code_list(tag_label);
 				console.error(code_list);
-				this.subscribe_quote(code_list);
+				TQ.subscribe_quote(code_list);
 				TQ.set_index_code_list(code_list);
 				this.$store.commit("setIndexLable", tag_label);
 				TQ.update_quote(new Date().getTime(), true);

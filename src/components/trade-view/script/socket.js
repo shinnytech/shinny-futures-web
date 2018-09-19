@@ -4,25 +4,16 @@ const delay = timeout => {
     });
 };
 
-
 const Io = {
-  //ws: null,
-
   time_map : {},
   kline_id_map : {},
 
   init: function (tq_obj) {
-    //const BrowserWebSocket = window.WebSocket || window.MozWebSocket
-    //this.ws = new BrowserWebSocket('ws://localhost:3010')
-    //this.ws = new BrowserWebSocket('ws://0.0.0.0:7777')
-
-    this.TQ = tq_obj;
-    this.ws = this.TQ.ws;
     this.resolution_map = {"1":60, "5":300, "15":900, "30":1800, "60":3600, "1D":86400};
   },
 
   init_symbol_data: function (symbol, dur_nano, view_width) {
-      this.send_kline_request( symbol, dur_nano, -1, view_width );
+      TQ.subcribe_chart( symbol, dur_nano, -1, view_width );
   },
 
   has_key: function (dict_map, key){
@@ -40,14 +31,14 @@ const Io = {
 
   judge_data_complete: function (symbol, dur_nano, left_kline_id, view_width){
     try{
-        if( typeof( this.TQ.dm.datas.klines[symbol][dur_nano]["data"] ) == "undefined" )
+        if( typeof( TQ.dm.datas.klines[symbol][dur_nano]["data"] ) == "undefined" )
             return false;
     }
     catch(err){
         return false;
     }
 
-      var judge_data = this.TQ.dm.datas.klines[symbol][dur_nano]["data"];
+      var judge_data = TQ.dm.datas.klines[symbol][dur_nano]["data"];
       if( judge_data.length == 0 ){
           return false;
       }
@@ -59,7 +50,7 @@ const Io = {
 
       var judge_start_pos = left_kline_id;
       if( left_kline_id == -1 ){
-          var last_id = this.TQ.dm.datas.klines[symbol][dur_nano].last_id
+          var last_id = TQ.dm.datas.klines[symbol][dur_nano].last_id
           if( typeof(last_id)=="undefined" ){
               return false;
           }
@@ -98,8 +89,8 @@ const Io = {
         }
       }
 
-      var left_id = this.TQ.dm.datas.klines[symbol][dur_nano].left_id
-      var last_id = this.TQ.dm.datas.klines[symbol][dur_nano].last_id
+      var left_id = TQ.dm.datas.klines[symbol][dur_nano].left_id
+      var last_id = TQ.dm.datas.klines[symbol][dur_nano].last_id
 
       if( judge_data[left_id]===undefined || judge_data[last_id]===undefined )
           return false;
@@ -107,55 +98,27 @@ const Io = {
       this.kline_id_map[symbol+dur_nano] = {"left_id":left_id,"left_id_datetime":judge_data[left_id]["datetime"]/1000000000,
                                                "last_id":last_id,"last_id_datetime":judge_data[last_id]["datetime"]/1000000000,};
 
-      // if( typeof( this.TQ.dm.datas.klines[symbol][dur_nano]["data"][left_kline_id] ) != "undefined" )
+      // if( typeof( TQ.dm.datas.klines[symbol][dur_nano]["data"][left_kline_id] ) != "undefined" )
       //     return true;
       return true;
   },
 
   request_kline_period: function( symbol, dur_nano, left_kline_id, view_width ) {
-      this.send_kline_request( symbol, dur_nano, left_kline_id, view_width );
+	  TQ.subcribe_chart( symbol, dur_nano, left_kline_id, view_width );
 
       console.log("request_kline_period");
-      //console.log(this.TQ.dm.datas.klines);
       var UPDATE_result = this.judge_data_complete(symbol, dur_nano, left_kline_id, view_width);
       console.log(UPDATE_result);
 
       return UPDATE_result;
   },
 
-  send_kline_request: function ( symbol, dur_nano, left_kline_id, view_width ){
-      if( left_kline_id == -1 ){
-          this.ws.send_json( {
-            "aid": "set_chart",
-            "chart_id": "abcd123",
-            "ins_list": symbol,
-            "duration": dur_nano,
-            "view_width":view_width,
-          } );
-      }
-      else{
-          this.ws.send_json( {
-            "aid": "set_chart",
-            "chart_id": "abcd123",
-            "ins_list": symbol,
-            "duration": dur_nano,
-            "view_width":view_width,
-            "left_kline_id":left_kline_id,
-          } );
-      }
-
-
-
-      //let ks = TQ.dm.get_kline_serial( symbol, dur_nano );
-      //return ks.d;
-  },
-
   process_kline_data: function (symbol, dur_nano, left_kline_id, view_width){
-      var kline_data = this.TQ.dm.datas.klines[symbol][dur_nano]["data"]
+      var kline_data = TQ.dm.datas.klines[symbol][dur_nano]["data"]
 
       var judge_start_pos = left_kline_id;
       if( left_kline_id == -1 ){
-        var last_id = this.TQ.dm.datas.klines[symbol][dur_nano].last_id
+        var last_id = TQ.dm.datas.klines[symbol][dur_nano].last_id
         if( typeof(last_id)=="undefined" ){
           return false;
         }
@@ -179,7 +142,7 @@ const Io = {
   },
 
   process_kline_data_from_to: function (symbol, dur_nano, from, to){
-    var kline_data = this.TQ.dm.datas.klines[symbol][dur_nano]["data"]
+    var kline_data = TQ.dm.datas.klines[symbol][dur_nano]["data"]
 
     var left_id_datetime = this.kline_id_map[symbol+dur_nano]["left_id_datetime"]
     var last_id_datetime = this.kline_id_map[symbol+dur_nano]["last_id_datetime"]
@@ -266,25 +229,6 @@ const Io = {
   },
 
   subscribeKline: function (params, callback) {
-
-    // if (this.ws === null) {
-    //   this.init(null)
-    // }
-    //
-    // if (this.ws.readyState) {
-    //   this.ws.send(JSON.stringify(params))
-    // } else {
-    //   this.ws.onopen = evt => {
-    //     this.ws.send(JSON.stringify(params))
-    //   }
-    // }
-    // this.ws.onmessage = e => {
-    //   console.log( TQ );
-    //   if( typeof( e.data["ping"] ) != "undefined" )
-    //     console.log( e.data );
-    //   callback(JSON.parse(e.data))
-    // }
-
     console.log( JSON.stringify(params) );
 
     // var symbol        = "SHFE.cu1809";
@@ -336,10 +280,10 @@ const Io = {
         var symbol     = params["symbol"]
 
         var dur_nano = this.resolution_map[resolution]*1000000000
-        var kline_data = this.TQ.dm.datas.klines[symbol][dur_nano]
+        var kline_data = TQ.dm.datas.klines[symbol][dur_nano]
         var last_id = kline_data.last_id
 
-        this.send_kline_request( symbol, dur_nano, -1, 2 );
+		TQ.subcribe_chart( symbol, dur_nano, -1, 2 );
         var UPDATE_result = this.judge_data_complete(symbol, dur_nano, last_id-1, 2);
         console.log( "update_data_complete_result : "+UPDATE_result );
 
