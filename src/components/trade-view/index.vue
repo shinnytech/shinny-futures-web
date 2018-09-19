@@ -13,8 +13,6 @@
 <script>
 	import Tv from "./script";
 
-	import TQSDK from "./script/tqsdk.js";
-
 	import Stock from "./script/index.js";
 
 	export default {
