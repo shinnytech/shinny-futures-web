@@ -8,7 +8,7 @@
 							<el-button v-for="(item,index) in tag" :key="index" @click="setCurQuote(item.label)" :style="{background:curLable==item.label?'':''}">{{item.label}}</el-button>
 						</div>
 						<mTable id="first" :tableData="quote" :tableHeader="quoteHeader" :height="topHeight" @cellClick="cellClick"
-						    @cellDblclick="cellDblclick" :loading="loading" :cell_style="cell_style" />
+								@cellDblclick="cellDblclick" :loading="loading" :cell_style="cell_style" />
 					</div>
 					<stock :symbol="symbol" v-if="showStcok" :style="{height:topHeight+'px'}" />
 					<div class="return" @click="goBack" v-if="showStcok">
@@ -40,10 +40,6 @@
 	import {
 		indexColumnColorMap
 	} from "../assets/formatter.js";
-	import {
-		TQ
-	} from "../libs/tqsdk.js";
-
 	import stock from "../components/trade-view/index";
 	import ElFooter from "../../node_modules/element-ui/packages/footer/src/main.vue";
 
@@ -162,12 +158,12 @@
 			},
 			fetch_symbol_info() {
 				axios({
-						headers: {
-							Accept: "application/json; charset=utf-8"
-						},
-						method: "GET",
-						url: 'http://openmd.shinnytech.com/t/md/symbols/latest.json',
-					})
+					headers: {
+						Accept: "application/json; charset=utf-8"
+					},
+					method: "GET",
+					url: info_server_url
+				})
 					.then(res => {
 						this.symbol_info = res.data;
 					})
@@ -219,7 +215,7 @@
 						)
 							continue;
 						if (k.search(/[a-zA-Z]+\.[a-zA-Z]+[0-9]+[CP][0-9]+/g) > -1)
-							//期权排除
+						//期权排除
 							continue;
 
 						var expired_judge = tq_quotes[k]["expired"];
@@ -469,7 +465,7 @@
 
 	.first-wrap__child {
 		box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2),
-			0 1px 5px 0 rgba(0, 0, 0, 0.12);
+		0 1px 5px 0 rgba(0, 0, 0, 0.12);
 		position: relative;
 		overflow-x: hidden;
 	}

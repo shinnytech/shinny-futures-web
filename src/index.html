@@ -2,17 +2,22 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <title>ShinnyFutureWeb</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+	<meta charset="utf-8">
+	<title>ShinnyFutureWeb</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
 
-    <script>
-    </script>
+	<script src="/src/libs/tqsdk.js"></script>
+	<script src="/src/assets/config.js"></script>
+	<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+	<script>
+		const TQ = new TQSDK(undefined, sim_server_url, false);
+		const tr_TQ = new TQSDK(undefined, tr_server_url, true);
+	</script>
 </head>
 
 <body>
-    <div id="app"></div>
+<div id="app"></div>
 </body>
 
 </html>

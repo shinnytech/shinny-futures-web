@@ -20,9 +20,6 @@
 	</el-container>
 </template>
 <script>
-	import {
-		tr_TQ
-	} from "../libs/tqsdk.js";
 	export default {
 		data() {
 			return {
@@ -37,10 +34,10 @@
 				rules: {
 					typeId: [],
 					name: [{
-							required: true,
-							message: "请输入账号",
-							trigger: "blur"
-						},
+						required: true,
+						message: "请输入账号",
+						trigger: "blur"
+					},
 						{
 							min: 3,
 							max: 20,
@@ -49,10 +46,10 @@
 						}
 					],
 					pwd: [{
-							required: true,
-							message: "请输入密码",
-							trigger: "blur"
-						},
+						required: true,
+						message: "请输入密码",
+						trigger: "blur"
+					},
 						{
 							min: 3,
 							max: 20,
@@ -192,7 +189,7 @@
 		margin-top: 120px;
 		background-color: white;
 		box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2),
-			0 1px 5px 0 rgba(0, 0, 0, 0.12);
+		0 1px 5px 0 rgba(0, 0, 0, 0.12);
 		padding: 32px;
 	}
 

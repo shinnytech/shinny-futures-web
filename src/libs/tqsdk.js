@@ -2177,11 +2177,3 @@ const UiUtils = (function () {
         }
     }
 })();
-
-let sim_server_url = 'ws://openmd.shinnytech.com/t/md/front/mobile';
-let tr_server_url = 'ws://opentd.shinnytech.com/';
-
-const TQ = new TQSDK(undefined, sim_server_url, false);
-const tr_TQ = new TQSDK(undefined, tr_server_url, true);
-
-export {TQ, tr_TQ};

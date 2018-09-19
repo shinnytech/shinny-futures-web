@@ -6,9 +6,7 @@ import router from "./router/index";
 import store from "./vuex/index";
 
 Vue.prototype.$tv_obj = undefined;
-
 Vue.use(ElementUI);
-
 Vue.prototype.$store = store;
 
 router.beforeEach((to, from, next) => {
@@ -20,6 +18,7 @@ router.beforeEach((to, from, next) => {
     console.log(22);
   }
 });
+
 
 new Vue({
   el: "#app",
