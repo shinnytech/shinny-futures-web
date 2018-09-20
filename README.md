@@ -17,8 +17,8 @@
 
 ## 如何安装
 -----------------------
-
+```
 git clone https://github.com/shinnytech/shinny-futures-web
 npm install
 npm run dev
-
+```
