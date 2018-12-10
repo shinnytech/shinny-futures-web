@@ -34,3 +34,14 @@ npm run test:e2e
 ```
 npm run test:unit
 ```
+
+### publish
+```
+gh-pages -d dist
+```
+或者
+```
+git add dist/
+git commit -m "xxx"
+git subtree push --prefix dist origin gh-pages
+```

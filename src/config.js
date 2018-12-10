@@ -1,6 +1,6 @@
-const InfoServerUrl = 'http://openmd.shinnytech.com/t/md/symbols/latest.json'
-const QuotesServerUrl = 'ws://openmd.shinnytech.com/t/md/front/mobile'
-const TradeServerUrl = 'ws://t.shinnytech.com/trade/shinny'
+const InfoServerUrl = 'https://openmd.shinnytech.com/t/md/symbols/latest.json'
+const QuotesServerUrl = 'wss://openmd.shinnytech.com/t/md/front/mobile'
+const TradeServerUrl = 'wss://t.shinnytech.com/trade/shinny'
 import {FormatDatetime, FormatPrice, FormatDirection, FormatOffset, FormatStatus} from '@/plugins/utils'
 
 // const DefaultUser = {
