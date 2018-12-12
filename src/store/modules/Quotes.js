@@ -67,6 +67,9 @@ export default {
     },
     UPDATE_QUOTES: (state, payload) => {
       for (let symbol in payload) {
+        if (!state[symbol]) {
+          store.registerModule(['quotes', symbol], Quote)
+        }
         if (payload[symbol] !== null) store.commit('quotes/' + symbol + '/UPDATE', payload[symbol])
         state[symbol].change = state[symbol].last_price - state[symbol].pre_settlement
         if (isNaN(state[symbol].change)) {

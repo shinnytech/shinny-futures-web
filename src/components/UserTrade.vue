@@ -37,13 +37,13 @@
                         <table-accounts/>
                     </TabPane>
                     <TabPane label="持仓" name="positions">
-                        <table-positions/>
+                        <table-positions :height="height"/>
                     </TabPane>
                     <TabPane label="委托单" name="orders">
-                        <table-orders/>
+                        <table-orders :height="height"/>
                     </TabPane>
                     <TabPane label="成交记录" name="trades">
-                        <table-trades/>
+                        <table-trades :height="height"/>
                     </TabPane>
                 </Tabs>
             </template>
@@ -96,6 +96,9 @@
       })
     },
     computed: {
+      height: function () {
+        return (this.$root.windowHeight * (1 - this.$root.appSplit) - 44) + ''
+      },
       instrumentId: {
         get: function () {
           return this.innerInstrumentId
@@ -109,9 +112,6 @@
       })
     },
     methods: {
-      handleSelectTab (index, indexPath) {
-        this.selectedTab = index
-      },
       querySearch (queryString, cb) {
         let results = queryString ? this.$store.getters['quotes/GET_QUOTES_BY_INPUT'](queryString) : []
         this.searchResult = results
@@ -140,26 +140,12 @@
             height: 100%;
             overflow: hidden;
         }
-        .split-vertical {
-            height: 100%;
-            width: 6px;
-            background-color: $page-background-color;
-            cursor: col-resize;
-            .split-horizontal-dots {
-                left: 50%;
-                top: 1px;
-                width: 40px;
-                position: absolute;
-                overflow: hidden;
-                .dot {
-                    background-color: darken($page-background-color, 30%);
-                    height: 4px;
-                    width: 4px;
-                    border-radius: 2px;
-                    float: left;
-                    margin-right: 3px;
-                }
-            }
+        .ivu-tabs-bar {
+            margin-bottom: 6px;
+        }
+        .ivu-table-cell {
+            padding-left: 10px;
+            padding-right: 10px;
         }
     }
     .auto-complete-search-result {

@@ -6,7 +6,7 @@
                     <ButtonsLine :tags="tags" :defaultTag="defaultTag" v-on:change="handlerChangeTag"></ButtonsLine>
                 </div>
                 <div class="bottom-content" style="top: 28px;">
-                    <table-quotes :contentList="quotesList" :tableCol="quotesTableRow" :rootPath="rootPath" :height="tableHeight"/>
+                    <table-quotes :contentList="quotesList" :tableCol="quotesTableRow" :rootPath="rootPath" />
                 </div>
             </template>
             <template slot="right">
@@ -14,7 +14,7 @@
                     <quote-info :instrumentId="instrumentId"/>
                 </div>
                 <div class="bottom-content" style="top: 220px;">
-                    <ticks-list :instrumentId="instrumentId" :height="ticksListHeight"/>
+                    <ticks-list :instrumentId="instrumentId"/>
                 </div>
             </template>
         </SplitLeftRight>
@@ -53,22 +53,15 @@
     computed: {
       quotesList: function () {
         let list = this.$store.state.tagsQuotesMap[this.$route.params.tag]
-        this.$store.commit('SUBSCRIBE_QUOTE', list)
+        if (list) {
+          this.$store.commit('SUBSCRIBE_QUOTE', list)
+        }
         return list
       },
       rowWidth: function () {
         let lengthOfWords = this.$store.state.tags.join('').length
         let lengthOfTags = this.$store.state.tags.length
         return lengthOfWords * 12.5 + lengthOfTags * 20
-      },
-      height: function () {
-        return (this.$store.state.quotesViewHeight - 6) + 'px'
-      },
-      tableHeight: function () {
-        return (this.$store.state.quotesViewHeight - 30 - 12) + 'px'
-      },
-      ticksListHeight: function () {
-        return (this.$store.state.quotesViewHeight - 240 - 4*3) + 'px'
       },
       ...mapGetters({
         instrumentId: 'getSelectedShowInstrumentId'

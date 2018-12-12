@@ -1,8 +1,8 @@
 <template>
     <div class="chart" :style="{height: height + 'px'}">
         <RadioGroup size="small" type="button" v-model="selectedPeriod" @on-change="handlerChangePeriod">
-            <Radio v-for="item in periods" :key="item.name" :label="item.name">
-                {{item.name}}
+            <Radio v-for="item in periods" :key="item" :label="item">
+                {{item}}
             </Radio>
         </RadioGroup>
         <div id="CHART" ref="CHART" :style="{height: height - 30 + 'px'}">
@@ -13,40 +13,35 @@
 
 <script>
   import * as d3 from 'd3'
-  import {DM} from '@/store/websockets/index'
+  import {DM, QuoteWs} from '@/store/websockets/index'
   import Chart from './index'
 
   window.d3 = d3
+
+  const Periods = {
+    '5s': 5,
+    '10s': 10,
+    '30s': 30,
+    '1m': 60,
+    '5m': 60 * 5,
+    '15m': 60 * 15,
+    '30m': 60 * 30,
+    '1H': 60 * 60,
+    '1D': 60 * 60 * 24,
+  }
 
   export default {
     name: 'Chart',
     components: {},
     data() {
       return {
-        periods: this.$store.state.periods,
+        periods: Object.keys(Periods),
         selectedPeriod: '1m'
       }
     },
     computed: {
       duration() {
-        let duration = 60
-        switch (this.selectedPeriod) {
-          case '1m':
-            duration = 60
-            break
-          case '5m':
-            duration = 60 * 5
-            break
-          case '1H':
-            duration = 60 * 60
-            break
-          case '1D':
-            duration = 60 * 60 * 24
-            break
-          default:
-            break
-        }
-        return duration * 1e9
+        return Periods[this.selectedPeriod] * 1e9
       }
     },
     props: {
@@ -64,27 +59,18 @@
     watch: {
       instrumentId: {
         handler(newVal, oldVal) {
-          this.$store.commit('SET_CHART', {
-            symbol: newVal,
-            duration: this.duration,
-            view_width: 1000
-          })
-          DM.unsubscribe('klines/' + oldVal + '/' + this.duration, this.update)
-          DM.subscribe('klines/' + newVal + '/' + this.duration, this.update)
-          this.update(DM.getByPath('klines/' + newVal + '/' + this.duration))
+          this.$store.commit('SUBSCRIBE_QUOTE', [this.instrumentId])
+          if (this.chart) {
+            this.chart.setSymbol(newVal)
+          }
         },
         immediate: true
       },
       duration: {
         handler(newVal, oldVal) {
-          this.$store.commit('SET_CHART', {
-            symbol: this.instrumentId,
-            duration: newVal,
-            view_width: 1000
-          })
-          DM.unsubscribe('klines/' + this.instrumentId + '/' + oldVal, this.update)
-          DM.subscribe('klines/' + this.instrumentId + '/' + newVal, this.update)
-          this.update(DM.getByPath('klines/' + this.instrumentId + '/' + newVal))
+          if (this.chart) {
+            this.chart.setDuration(newVal)
+          }
         },
         immediate: true
       },
@@ -102,23 +88,7 @@
       handlerChangePeriod: function (period) {
         this.updatePeriod(period)
       },
-      send_set_chart: function () {
-        this.$store.commit('SET_CHART', {
-          symbol: this.instrumentId,
-          duration: this.duration,
-          view_width: 1000
-        })
-      },
       updatePeriod: function (period) {
-      },
-      update: function (data) {
-        if (this.chart && data && data.last_id > -1) {
-//          let klines = DM.getByPath('klines/' + this.instrumentId + '/' + this.duration)
-//          console.log(data)
-          this.chart.setData(data)
-          this.chart.draw()
-        }
-
       }
     },
     mounted() {
@@ -133,10 +103,13 @@
           width: chartWidth,
           height: chartHeight,
           margin: margin,
-          quote: DM.getByPath('quotes/' + this.instrumentId)
+
+          dm: DM,
+          ws: QuoteWs,
+          instrumentId: this.instrumentId,
+          duration: this.duration
         })
       })
-
     },
     destroyed(){
       console.log('destroyed')
@@ -147,23 +120,21 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
     #CHART {
-        border: 1px solid red;
+        border: 1px solid $table-border-color;
+        border-radius: 4px;
         width: 100%;
         margin-top: 2px;
         overflow: hidden;
-
     }
 
+    text.symbol {
+        fill: #BBBBBB;
+    }
 
-
-    /*text.symbol {*/
-    /*fill: #BBBBBB;*/
-    /*}*/
-
-    /*path {*/
-    /*fill: none;*/
-    /*stroke-width: 1;*/
-    /*}*/
+    path {
+        fill: none;
+        stroke-width: 1;
+    }
 
 
     text {
@@ -198,13 +169,38 @@
         stroke: #000000;
     }
 
+    //
+    path.volume {
+        fill: #DDDDDD;
+    }
+    path.volume.body {
+        stroke-width: 0;
+    }
+
+    path.volume.up {
+        fill: #FF0000;
+        stroke: #FF0000;
+    }
+
+    path.volume.down {
+        stroke-width: 1;
+        fill: #FFFFFF;
+        stroke: #00AA00;
+    }
+    path.volume.equal {
+        stroke: #000000;
+    }
+
+    path.oi {
+        stroke-width: 2;
+        stroke: orange;
+    }
+
+
     .close.annotation.up path {
         fill: #00AA00;
     }
 
-    path.volume {
-        fill: #DDDDDD;
-    }
 
     .indicator-plot path.line {
         fill: none;

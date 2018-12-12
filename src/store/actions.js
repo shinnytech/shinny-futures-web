@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import { DM } from './websockets'
 import { InfoServerUrl } from '@/config'
 
 export default { // 异步函数
@@ -12,6 +13,8 @@ export default { // 异步函数
       for (let k in data) {
         if (data[k].expired || data[k].class === 'FUTURE_OPTION') delete data[k]
       }
+      // DM.mergeData({quotes: data}, true, false)
+
       commit('quotes/INIT_QUOTES', data)
       commit('SET_TAGS_QOUTES_MAP', data)
     })

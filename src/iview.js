@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import iView from 'iview'
 import 'iview/dist/styles/iview.css'
-import './assets/fonticon.css'
+// import './assets/fonticon.css'
 
 Vue.use(iView, {
   transfer: true, // 所有带浮层的组件，是否将浮层放置在 body 内

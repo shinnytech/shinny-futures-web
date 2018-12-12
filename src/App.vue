@@ -1,11 +1,16 @@
 <template>
     <Layout id="shinny-app">
         <Sider class="sider" width="60">
-            <Tooltip content="行情服务器" placement="right">
-                <Icon type="ios-disc" size="30" :color="quoteWsConnected?'green':'red'"/>
-            </Tooltip>
-            <Tooltip content="交易服务器" placement="right">
-                <Icon type="ios-disc" size="30" :color="tradeWsConnected?'green':'red'"/>
+            <!--<Tooltip content="行情服务器" placement="right">-->
+                <!--<Icon type="ios-disc" size="30" :color="quoteWsConnected?'green':'red'"/>-->
+            <!--</Tooltip>-->
+            <!--<Tooltip content="交易服务器" placement="right">-->
+                <!--<Icon type="ios-disc" size="30" :color="tradeWsConnected?'green':'red'"/>-->
+            <!--</Tooltip>-->
+            <Tooltip content="设置" placement="right">
+                <Button type="text" size='small' to="https://www.shinnytech.com/tianqin/" target="_blank">
+                    <Icon type="md-settings" size="40" />
+                </Button>
             </Tooltip>
 
             <Tooltip content="打开天勤主页" placement="right">

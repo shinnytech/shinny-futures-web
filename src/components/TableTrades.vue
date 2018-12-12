@@ -1,5 +1,5 @@
 <template>
-    <Table :columns="columns" :data="trades"></Table>
+    <Table :height="height" :columns="columns" :data="trades"></Table>
 </template>
 
 <script>

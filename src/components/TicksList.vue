@@ -34,7 +34,6 @@ export default {
   watch: {
     instrumentId: {
       handler (newVal, oldVal) {
-        console.log('instrumentId change')
         this.$store.commit('SET_TICK_CHART', { symbol: newVal })
         this.ticks.splice(0)
         DM.unsubscribe('ticks/' + oldVal, this.update)
@@ -147,7 +146,6 @@ export default {
           border-radius: 4px;
           border-spacing: 0px;
           width: 100%;
-            height: 100%;
         }
         // 首行
         table thead th,

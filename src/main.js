@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
-import './registerServiceWorker'
+// import './registerServiceWorker'
 import './iview.js'
 
 Vue.config.productionTip = false
@@ -26,8 +26,8 @@ const router = new Router({
       path: '/charts/:instrument_id',
       name: 'charts',
       components: {
-        quotes: Chart,
-        //() => import(/* webpackChunkName: "Charts" */ './views/Charts.vue'), // lazy-loaded
+        // quotes: Chart,
+        quotes: () => import(/* webpackChunkName: "Charts" */ './views/Charts.vue'), // lazy-loaded
         user: User
       }
     },

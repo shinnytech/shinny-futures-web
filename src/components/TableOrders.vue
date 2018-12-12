@@ -1,5 +1,5 @@
 <template>
-    <Table :columns="columns" :data="orders"></Table>
+    <Table :height="height" :columns="columns" :data="orders"></Table>
 </template>
 
 <script>
@@ -59,39 +59,35 @@
             align: 'right'
           },
           {
-//            v-if="scope.row.status === 'ALIVE'"
             title: '操作',
             key: 'action',
             width: 80,
             align: 'center',
             render: (h, params) => {
-              return h('div', [
-                  h('Button', {
-                    props: {
-                      size: 'small'
-                    },
-                    style: {
-                      marginRight: '5px'
-                    },
-                    on: {
-                      click: () => {
-                        this.handleCancelOrder(params.index, params.row)
-                      }
-                    }
-                  }, '撤单')
-                ]
-              )
-            },
+              let btn = h('Button', {
+                props: {
+                  size: 'small'
+                },
+                style: {
+                  marginRight: '5px'
+                },
+                on: {
+                  click: () => {
+                    this.handleCancelOrder(params.index, params.row)
+                  }
+                }
+              }, '撤单')
+              return params.row.status === 'ALIVE' ? h('div', [btn]) : h('div', [])
+            }
           },
           {
             title: '状态',
             key: 'status',
             width: 100,
-            align: 'center'
-            //    :filters="[{ text: '未完成', value: 'ALIVE' }, { text: '已完成', value: 'FINISHED' }]"
-//    :filter-method="filterStatus"
-//      filter-placement="bottom-end"
-//    :formatter="formatterStatus">
+            align: 'center',
+            render: (h, params) => {
+              return params.row.status === 'FINISHED' ? h('div', '已完成') : h('div', '未完成')
+            }
           },
           {
             title: '下单时间',

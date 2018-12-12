@@ -14,8 +14,6 @@ import TradersModule from '@/store/modules/Trades'
 import TransfersModule from '@/store/modules/Transfers'
 import BanksModule from '@/store/modules/Banks'
 import QuotesModule from '@/store/modules/Quotes'
-import KlinesModule from '@/store/modules/Klines'
-import TicksModule from '@/store/modules/Ticks'
 
 Vue.use(Vuex)
 
@@ -49,25 +47,6 @@ export default new Vuex.Store({
     ins_list: [], // 已订阅行情
     tags: Tags.map(x => x.id),
     tagsQuotesMap: InitTagsQuotesMap,
-    // 图表
-    periods: [
-      {
-        name: 'Day', // 日内
-        seconds: 60 * 60 * 24
-      }, {
-        name: '1m',
-        seconds: 60
-      }, {
-        name: '5m',
-        seconds: 60 * 5
-      }, {
-        name: '1H',
-        seconds: 60 * 60
-      }, {
-        name: '1D',
-        seconds: 60 * 60 * 24
-      }
-    ]
   },
   mutations,
   getters,

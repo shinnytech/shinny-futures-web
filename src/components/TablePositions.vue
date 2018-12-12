@@ -1,5 +1,5 @@
 <template>
-    <Table style="height: 100%" :columns="columns" :data="positions"></Table>
+    <Table :height="height" :columns="columns" :data="positions"></Table>
 </template>
 
 <script>
@@ -116,7 +116,8 @@
         genButtons (h, params) {
           let type = params.column.className === 'col-buy' ? 'success' : 'error'
           let dir = params.column.className === 'col-buy' ? 'SELL' : 'BUY'
-          return h('div', [
+          let volume = params.column.className === 'col-buy' ? params.row.volume_long : params.row.volume_short
+          let btns = [
             h('Button', {
               props: {
                 type: type,
@@ -145,7 +146,8 @@
                 }
               }
             }, '反手')
-          ])
+          ]
+          return volume > 0 ? h('div', btns) : h('div', [])
         },
         handleClose (index, row, direction) {
             let quote = this.$store.getters['quotes/GET_QUOTE'](row.exchange_id + '.' + row.instrument_id)
