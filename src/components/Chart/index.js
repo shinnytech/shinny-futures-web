@@ -219,17 +219,19 @@ class Chart {
         let [x, y] = d3.mouse(this)
         let xBars = Math.round(x / that.barWidth)
         let xAlign = Math.round(x / that.barWidth) * that.barWidth + that.barWidth / 2
-        let data = that.chartDm.klines.data[that.chartDm.left_id + xBars]
-        let showText = `高 ${data.high} 开 ${data.open} 低 ${data.low} 收 ${data.close}`
-        that.mouseG.selectAll("g.text text")
-          .text(showText)
+        if (that.chartDm.klines && that.chartDm.klines.data) {
+          let data = that.chartDm.klines.data[that.chartDm.left_id + xBars]
+          let showText = `高 ${data.high} 开 ${data.open} 低 ${data.low} 收 ${data.close}`
+          that.mouseG.selectAll("g.text text")
+            .text(showText)
 
-        that.mouseG.selectAll("g.x line")
-          .attr('y1', y)
-          .attr('y2', y)
-        that.mouseG.select("g.y line")
-          .attr('x1', xAlign)
-          .attr('x2', xAlign)
+          that.mouseG.selectAll("g.x line")
+            .attr('y1', y)
+            .attr('y2', y)
+          that.mouseG.select("g.y line")
+            .attr('x1', xAlign)
+            .attr('x2', xAlign)
+        }
       })
       .on("mouseleave", function(){
         that.mouseG.selectAll("g.x line")
