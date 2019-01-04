@@ -10,34 +10,19 @@
     components: {
       Chart
     },
-    data () {
-      return {
-        instrumentId: this.$route.params.instrument_id
-      }
-    },
     computed: {
+      instrumentId: function () {
+        return this.$route.params.instrument_id
+      },
       height: function () {
-        console.log(this.$root.windowHeight * this.$root.appSplit)
         return this.$root.windowHeight * this.$root.appSplit
       }
     },
     created: function () {},
     mounted: function () {
+      this.onKeyChange(27) //esc
       // this.onKeyChange(13);//enter
-      // this.onKeyChange(27);//esc
       // this.onKeyChange(96) // ~
-
-//      if (typeof this.$tv_obj == "undefined") {
-//        // Tv.init({ symbol: "SHFE.cu1809", interval: "1D" });
-//        TradeView.init({
-//          symbol: this.$route.params.instrument_id || "SHFE.cu1809",
-//          interval: "1D"
-//        });
-//        TradeView.subscribe_tq(TQ);
-//        this.$tv_obj = TradeView;
-//      } else {
-//        TradeView.setSymbol(this.$route.params.instrument_id);
-//      }
     },
     methods: {
       goBack () {

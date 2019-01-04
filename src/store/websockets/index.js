@@ -62,9 +62,7 @@ function WebSocketPlugin(store) {
     })
   })
 
-
-
-  store.subscribe(mutation => {
+  store.subscribe((mutation, state) => {
     if (['LOGIN', 'INSERT_ORDER', 'CANCEL_ORDER', 'TRANSFER'].includes(mutation.type)) {
       TradeWs.send('{"aid":"peek_message"}')
     }

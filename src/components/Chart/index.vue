@@ -1,10 +1,16 @@
 <template>
     <div class="chart" :style="{height: height + 'px'}">
-        <RadioGroup size="small" type="button" v-model="selectedPeriod" @on-change="handlerChangePeriod">
+        <RadioGroup size="small" type="button" v-model="selectedPeriod">
             <Radio v-for="item in periods" :key="item" :label="item">
                 {{item}}
             </Radio>
         </RadioGroup>
+        &nbsp;
+        <Checkbox label="ma" v-model="indicators.ma3.show" v-on:on-change="onchange('ma3')">MA3</Checkbox>
+        <Checkbox label="ma" v-model="indicators.ma10.show" v-on:on-change="onchange('ma10')">MA10</Checkbox>
+        <Checkbox label="ma" v-model="indicators.ma30.show" v-on:on-change="onchange('ma30')">MA30</Checkbox>
+        <Checkbox label="boll" v-model="indicators.boll.show" v-on:on-change="onchange('boll')">BOLL</Checkbox>
+
         <div id="CHART" ref="CHART" :style="{height: height - 30 + 'px'}">
 
         </div>
@@ -14,9 +20,7 @@
 <script>
   import * as d3 from 'd3'
   import {DM, QuoteWs} from '@/store/websockets/index'
-  import Chart from './index'
-
-  window.d3 = d3
+  import ChartSet from './index'
 
   const Periods = {
     '5s': 5,
@@ -35,8 +39,35 @@
     components: {},
     data() {
       return {
+        width: this.$root.windowWidth,
         periods: Object.keys(Periods),
-        selectedPeriod: '1m'
+        selectedPeriod: '1m',
+        indicators: {
+          'ma3': {
+            id: 'ma3',
+            name: 'ma',
+            params: 3,
+            show: true
+          },
+          'ma10': {
+            id: 'ma10',
+            name: 'ma',
+            params: 10,
+            show: true
+          },
+          'ma30': {
+            id: 'ma30',
+            name: 'ma',
+            params: 30,
+            show: true
+          },
+          'boll': {
+            id: 'boll',
+            name: 'boll',
+            params: {n: 3, p: 5},
+            show: true
+          },
+        }
       }
     },
     computed: {
@@ -56,59 +87,71 @@
         default: 400
       }
     },
+    methods: {
+      onchange: function(indicator_name){
+        this.chart.showIndicator(this.indicators[indicator_name])
+      }
+    },
     watch: {
       instrumentId: {
         handler(newVal, oldVal) {
           this.$store.commit('SUBSCRIBE_QUOTE', [this.instrumentId])
-          if (this.chart) {
-            this.chart.setSymbol(newVal)
-          }
+          if (this.chart) this.chart.symbol = newVal
         },
         immediate: true
       },
       duration: {
         handler(newVal, oldVal) {
-          if (this.chart) {
-            this.chart.setDuration(newVal)
-          }
+          if (this.chart) this.chart.duration = newVal
         },
         immediate: true
       },
       height: {
         handler(newVal, oldVal) {
-          console.log(newVal, oldVal)
           if (this.chart) {
-            this.chart.setHeight(newVal - 30 - 2)
+            this.chart.height = this.$refs.CHART.clientHeight
+            this.chart.draw()
           }
         },
         immediate: true
       }
     },
-    methods: {
-      handlerChangePeriod: function (period) {
-        this.updatePeriod(period)
-      },
-      updatePeriod: function (period) {
-      }
+    activated () {
+      console.log('activated')
+//      this.$nextTick(function () {
+//        this.chart.symbol = this.instrumentId
+//        this.chart.duration = this.duration
+//      })
+    },
+    deactivated () {
+      console.log('deactivated')
     },
     mounted() {
+      this.$on('global:resize', function(){
+        this.chart.height =  this.$refs.CHART.clientHeight
+        this.chart.width = this.$refs.CHART.clientWidth
+        this.chart.draw()
+      })
       this.$nextTick(function () {
         // Code that will run only after the entire view has been rendered
-        let chartHeight = this.height - 30 - 2
+        let chartHeight = this.$refs.CHART.clientHeight // this.height - 30 - 2
         let chartWidth = this.$refs.CHART.clientWidth
-        let margin = {top: 10, right: 50, bottom: 30, left: 50}
+        let margin = {top: 20, right: 50, bottom: 20, left: 50}
 
-        this.chart = new Chart({
+        this.chart = new ChartSet({
           id: 'CHART',
           width: chartWidth,
           height: chartHeight,
           margin: margin,
-
           dm: DM,
           ws: QuoteWs,
           instrumentId: this.instrumentId,
-          duration: this.duration
+          duration: this.duration,
+          mainPlotType: 'candle', // 'ohlc' 'hollowCandle'
         })
+        for (let k in this.indicators) {
+          this.chart.addIndicator(this.indicators[k])
+        }
       })
     },
     destroyed(){
@@ -136,7 +179,6 @@
         stroke-width: 1;
     }
 
-
     text {
         fill: #000000;
     }
@@ -149,6 +191,7 @@
 
     path.candle {
         stroke: #000000;
+        stroke-width: 1;
     }
     path.candle.body {
         stroke-width: 0;
@@ -160,8 +203,7 @@
     }
 
     path.candle.down {
-        stroke-width: 1;
-        fill: #FFFFFF;
+        fill: #00AA00;
         stroke: #00AA00;
     }
     path.candle.equal {
@@ -171,10 +213,12 @@
 
     //
     path.volume {
-        fill: #DDDDDD;
-    }
-    path.volume.body {
+        fill: none;
         stroke-width: 0;
+    }
+
+    path.volume.body {
+        fill: #FFFFFF;
     }
 
     path.volume.up {
@@ -184,11 +228,8 @@
 
     path.volume.down {
         stroke-width: 1;
-        fill: #FFFFFF;
         stroke: #00AA00;
-    }
-    path.volume.equal {
-        stroke: #000000;
+        /*fill: #00AA00;*/
     }
 
     path.oi {
@@ -196,6 +237,32 @@
         stroke: orange;
     }
 
+    // crosshair
+    .crosshair {
+        cursor: crosshair;
+    }
+
+    // ma
+    path.ma3 {
+        stroke: #1f77b4;
+    }
+
+    path.ma10 {
+        stroke: #aec7e8;
+    }
+
+    path.ma30 {
+        stroke: #ff7f0e;
+    }
+
+    // boll
+    path.top {
+        stroke: darkred;
+    }
+
+    path.bottom {
+        stroke: darkblue;
+    }
 
     .close.annotation.up path {
         fill: #00AA00;
@@ -205,18 +272,6 @@
     .indicator-plot path.line {
         fill: none;
         stroke-width: 1;
-    }
-
-    .ma-0 path.line {
-        stroke: #1f77b4;
-    }
-
-    .ma-1 path.line {
-        stroke: #aec7e8;
-    }
-
-    .ma-2 path.line {
-        stroke: #ff7f0e;
     }
 
     path.macd {
@@ -230,12 +285,12 @@
     path.zero {
         stroke: #BBBBBB;
         stroke-dasharray: 0;
-        stroke-opacity: 0.5;
+        /*stroke-opacity: 0.5;*/
     }
 
     path.difference {
-    fill: #BBBBBB;
-    opacity: 0.5;
+        fill: #BBBBBB;
+        /*opacity: 0.5;*/
     }
 
     path.rsi {
@@ -304,14 +359,7 @@
     stroke: darkblue;
     }
 
-    .crosshair {
-    cursor: crosshair;
-    }
 
-    .crosshair path.wire {
-    stroke: #DDDDDD;
-    stroke-dasharray: 1, 1;
-    }
 
     .crosshair .axisannotation path {
     fill: #DDDDDD;

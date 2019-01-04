@@ -11,6 +11,7 @@ class Volume {
   constructor (opts){
     this.name = opts.name ? opts.name : (new Date().getTime())
     this.plot = opts.plot ? opts.plot : null
+    this.chartDm = this.plot.chartDm
   }
   createPaths () {
     this.paths = []
@@ -18,24 +19,26 @@ class Volume {
     return this.paths
   }
   calcPaths (left_id, right_id, data) {
-    if (!this.plot.yScale || !this.plot.xScale || !this.plot.barWidth || !this.plot.barPadding) return
+    if (!this.plot.yScale || !this.plot.xScale || !this.chartDm) return
     let _path = {}
     this.paths.forEach(k => _path[k] = '')
-    for (let i = left_id; i<= right_id && data[i]; i++) {
+    for (let i = left_id; i<= right_id; i++) {
+      if (!data[i]) continue
       Object.keys(UpDownEqual).forEach(key => {
         if (UpDownEqual[key](data[i])) {
-          _path[[this.name, 'body', key].join('.')] += this.bodyPath(data[i], i)
+          _path[[this.name, 'body', key].join('.')] += this.bodyPath(data[i], i, key === 'up' ? 0 : 0.5)
         }
       })
     }
     return _path
   }
-  bodyPath (d, id){
-    let max = this.plot.yScale(0)
-    let vol = max - this.plot.yScale(d.volume)
-    let x = this.plot.xScale(id) + this.plot.barPadding
-    let width = this.plot.barWidth - this.plot.barPadding * 2
-    let path = `M ${x} ${max} l ${width} ${0} l ${0} ${-vol} l ${-width} ${0} l ${0} ${vol}`
+  bodyPath (d, id, diff){
+    let max = Math.floor(this.plot.yScale(0))
+    let vol = Math.round(max - this.plot.yScale(d.volume))
+    let x = this.plot.xScale(id) + this.chartDm.barPadding
+    let width = this.chartDm.barWidth - this.chartDm.barPadding * 2
+    let path = `M ${x+diff} ${max-diff} L ${x+width-diff} ${max-diff} L ${x+width-diff} ${max-vol+diff} L ${x+diff} ${max-vol+diff} L ${x+diff} ${max-diff}`
+    // let path = `M ${x} ${max} L ${x+width} ${max} L ${x+width} ${max-vol} L ${x} ${max-vol} L ${x} ${max}`
     return path
   }
 }

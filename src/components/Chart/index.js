@@ -1,12 +1,13 @@
 import * as d3 from 'd3'
 import ChartDM from './ChartDataManager'
 import Plot from './plot/plot'
+import Loading from './plot/loading'
+import Crosshair from './plot/crosshair'
 
-const AppendG = (parent, left, top, className = "") => {
-  return parent.append('g')
-    .attr("transform", "translate(" + left + "," + top + ")")
-    .attr("class", className)
-}
+import MA from './indicator/ma'
+import BOLL from './indicator/boll'
+import Indicator from './indicator/indicator'
+import SVG_G from "./plot/svg_g";
 
 let formatMillisecond = d3.timeFormat(".%L"),
   formatSecond = d3.timeFormat(":%S"),
@@ -28,11 +29,22 @@ function MultiFormat(date) {
 
 class PlotsManager {
   static PLOT_PADDING = 2 // 图表中间间隔
-  constructor(plotsNumber, height){
+
+  constructor(plotsNumber, height, width){
     this._height = height
+    this._width = width
     this._plotsNumber = plotsNumber ? plotsNumber : 2
     this.positions = []
     this.initLayout()
+  }
+
+  set width (h) {
+    this._width = h
+    this.initLayout()
+  }
+
+  get width () {
+    return this._width
   }
 
   set height (h) {
@@ -53,19 +65,19 @@ class PlotsManager {
     return this._plotsNumber
   }
 
-
-
   initLayout () {
     let avg = 1 / this.plotsNumber
     let first = avg + avg * 0.3 * (this.plotsNumber - 1)
     let others = avg * 0.7
     let avalibleHeight = this.height - PlotsManager.PLOT_PADDING * (this.plotsNumber - 1)
     this.positions[0] = {
+      width: this._width,
       height: avalibleHeight * first,
       top: 0
     }
     for(let i=1; i<this.plotsNumber; i++) {
       this.positions[i] = {
+        width: this._width,
         height: avalibleHeight * others,
         top: this.positions[i-1].top + this.positions[i-1].height + PlotsManager.PLOT_PADDING
       }
@@ -73,82 +85,239 @@ class PlotsManager {
   }
 }
 
+class ChartYAxis {
+  constructor (opts) {
+    this.parentG = opts.parentG
+    this.align = opts.align === 'right' ? 'right' : 'left'
+
+    this._height = opts.height ? opts.height : 0
+    this._width = opts.width ? opts.width : 0
+
+    this.g = this.parentG
+      .append('g')
+      .attr('class', 'y axis ' + this.align)
+
+    this.yScale = d3.scaleLinear().range([this._height, 0])
+    this.yAxis = d3.axisLeft().scale(this.yScale)
+
+    if (this.align === 'right') {
+      this.g.attr("transform", "translate(" + this._width + ",0)")
+    }
+  }
+  get height() {
+    return this._height
+  }
+  set height(h) {
+    this._height = h
+    this.yScale.range([this._height, 0])
+  }
+  get width() {
+    return this._width
+  }
+  set width(w) {
+    this._width = w
+    if (this.align === 'right') {
+      this.g.attr("transform", "translate(" + this._width + ",0)")
+    }
+  }
+  update(domain){
+    this.yScale.domain(domain)
+    this.g.call(this.yAxis)
+  }
+}
+
+
 class Chart {
+  constructor (opts) {
+    // 继承自 ChartSet
+    this.xScale = opts.xScale // d3.line()
+    this.chartDm = opts.chartDm
+
+    this.parentG = opts.parentG
+    this.name = opts.name
+    this.g = new SVG_G({
+      parentG: opts.parentG,
+      name: this.name,
+      top: opts.top,
+      left: opts.top
+    })
+
+    // init yAxisLeft , yAxisRight
+    // this.yAxisLeft = new ChartYAxis({
+    //   parentG: this.g,
+    //   align: 'left',
+    //   height: this._height,
+    //   width: this._width
+    // })
+    this.yAxisRight = null
+
+
+    // Plots
+    this.plots = {}
+
+    // type 主图类型 'candle' 'ohlc' 'hollowCandle' 'day'
+    // type 指标/副图类型 'line' 'bar' 'colorBar' 'dot'
+  }
+  top (t) {
+    if (t) {
+      this.g.top = t
+    }
+    return this.g.top
+  }
+
+  left (l) {
+    if (l) {
+      this.g.left = l
+    }
+    return this.g.left
+  }
+
+  get height() {
+    return this.g.height
+  }
+  set height(h) {
+    this.g.height = h
+
+    this.yAxisLeft.height = h
+    if(this.yAxisRight) this.yAxisRight.height = h
+  }
+  get width() {
+    return this._width
+  }
+  set width(w) {
+    this._width = w
+    this.g.attr("width", this._width)
+    this.yAxisLeft.width = w
+    if(this.yAxisRight) this.yAxisRight.width = w
+  }
+
+  addPlot (plotOptions = {}) {
+    this.plots[plotOptions.id] = new Plot(plotOptions)
+    this.appendPlotTypePath(plotOptions.id, this.plots.paths)
+  }
+
+  appendPlotTypePath(id, classesList) {
+    this.g.selectAll(`path.${id}`)
+      .data(classesList)
+      .enter()
+      .append('path')
+      .attr('class', (d) => `${id} ${d.join(' ')}`)
+  }
+
+
+  showPlot (id, show = true) {
+
+  }
+
+  removePlot (id) {
+    this.plots[id].destroy()
+    delete this.plots[id]
+  }
+
+  draw(l, r){
+    // 计算 Y 轴值范围
+    let range = {
+      left: [Infinity, -Infinity],
+      right: [Infinity, -Infinity]
+    }
+    for(let id in this.plots){
+      let plot = this.plots[id]
+      plot.update(l, r)
+      let r = plot.range(l, r)
+      range[plot.yAxisPos][0] = Math.min(r[0], range[plot.yAxisPos][0])
+      range[plot.yAxisPos][1] = Math.max(r[1], range[plot.yAxisPos][1])
+    }
+    // 更新 Y 轴
+    this.yAxisLeft.update(range.left)
+    if(this.yAxisRight) this.yAxisRight.update(range.right)
+
+    for(let key in this.plots){
+      let plot = this.plots[key]
+      plot.draw(l, r)
+    }
+  }
+
+}
+
+class ChartSet {
   static ZOOM_SENSITIVITY = 3
-  static BAR_WIDTH_MAX = 50
-  static BAR_WIDTH_MIN = 3
+  static INNER_HEIGHT_MIN = 50 // 最小高度
+  static INNER_WIDTH_MIN = 80 // 最小高度
 
   constructor(opts) {
+    this.divDomId = opts.id
+    this.outerWidth = opts.width
+    this.outerHeight = opts.height
+    this.margin = opts.margin ? opts.margin : {top: 10, right: 50, bottom: 30, left: 50}
+    this.innerWidth = this.outerWidth - this.margin.left - this.margin.right
+    this.innerHeight = this.outerHeight - this.margin.top - this.margin.bottom
+    this._symbol = opts.symbol ? opts.symbol : ''
+    this._duration = opts.duration ? opts.duration : ''
+
     this.chartDm = new ChartDM({
       dm: opts.dm,
       ws: opts.ws,
       symbol: opts.instrumentId,
-      duration: opts.duration
-    });
+      duration: opts.duration,
+      width: this.innerWidth
+    })
     this.chartDm.addEventListener('update', this.draw.bind(this))
 
-    this.divDomId = opts.id;
-    this.outerWidth = opts.width;
-    this.outerHeight = opts.height;
-    this.margin = opts.margin ? opts.margin : {top: 10, right: 50, bottom: 30, left: 50};
-    this.innerWidth = this.outerWidth - this.margin.left - this.margin.right;
-    this.innerHeight = this.outerHeight - this.margin.top - this.margin.bottom
+    // 主图类型 'candle' 'ohlc' 'hollowCandle' 'day'
+    // this.mainChart = new Chart({
+    //   type: this.mainPlotType,
+    // })
+
+    // this.charts = {
+    //   'main' : new Candle()
+    // }
+
+    // mainPlotType: 'candle', // 'ohlc' 'hollowCandle'
+
+    this.indicators = {}
 
     this.init()
-    this.plotsManager = new PlotsManager(2, this.innerHeight)
+    this.plotsManager = new PlotsManager(2, this.innerHeight, this.innerWidth)
     this.mainPlot  = new Plot({
       name: 'candle',
       type: 'candle',
-      barWidth: this.barWidth,
-      barPadding: this.barPadding,
+      xScale: this.xScale,
+      chartDm: this.chartDm,
       parentG: this.rootG,
 
       width: this.innerWidth,
       height: this.plotsManager.positions[0].height,
       top: this.plotsManager.positions[0].top,
-      // left: this.margin.left,
-
-      xScale: this.xScale,
-      chartDm: this.chartDm
+      left: 0
     })
 
     this.subPlots = {
       volume: new Plot({
         name: 'volume',
         type: 'volume',
-        barWidth: this.barWidth,
-        barPadding: this.barPadding,
+        xScale: this.xScale,
+        chartDm: this.chartDm,
         parentG: this.rootG,
 
         width: this.innerWidth,
         height: this.plotsManager.positions[1].height,
         top: this.plotsManager.positions[1].top,
-        // left: this.margin.left,
-
-        xScale: this.xScale,
-        chartDm: this.chartDm
+        left: 0,
       }),
       oi: new Plot({
         name: 'oi',
         type: 'oi',
-        barWidth: this.barWidth,
-        barPadding: this.barPadding,
+        xScale: this.xScale,
+        chartDm: this.chartDm,
         parentG: this.rootG,
 
         yAxisPos: 'right',
         width: this.innerWidth,
         height: this.plotsManager.positions[1].height,
         top: this.plotsManager.positions[1].top,
-        // left: this.margin.left,
-
-        xScale: this.xScale,
-        chartDm: this.chartDm
+        left: 0
       })
     }
-  }
-
-  showLoading(show = true) {
-    this.loadingG.attr("visibility", show ? "visible" : "hidden")
   }
 
   init() {
@@ -156,131 +325,52 @@ class Chart {
     this.svg = d3.select("#" + this.divDomId).append("svg")
       .attr("width", this.outerWidth)
       .attr("height", this.outerHeight)
+
     // 根结点
-    this.rootG = AppendG(this.svg, this.margin.left, this.margin.top)
+    this.rootG = this.svg.append('g')
+      .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")")
+
     // 加载中
-    this.loadingG = this.svg.append('g')
-      .attr("width", this.outerWidth)
-      .attr("height", this.outerHeight)
-      .attr("class", 'loading')
-      .append('text')
-      .attr("x", "50%")
-      .attr("y", "50%")
-      .attr("text-anchor", "middle")
-      .attr('font-size', 50)
-      .text('正在加载数据')
+    this.loading = new Loading({
+      parentG: this.svg,
+      name: 'loading',
+      show: true
+    })
+
     // 初始化 X 轴
-    this.xScale = d3.scaleLinear().range([0, this.innerWidth])
+    this.xScale = d3.scaleLinear()
     this.xAxis = d3.axisBottom().scale(this.xScale)
+    this.rootG.append('g')
+      .attr("class", 'x axis')
+      .attr("transform", "translate(" + this.chartDm.barWidth / 2 + "," + (this.innerHeight + 0.5) + ")")
+
     // crosshair
-    this.mouseG = AppendG(this.svg, this.margin.left, this.margin.top, "mouse")
-    this.mouseG.append('g')
-      .attr("class", 'x')
-      .append('line')
-      .attr("x1", 0)
-      .attr("y1", 0)
-      .attr("x2", this.innerWidth)
-      .attr("y2", 0)
-      .attr("stroke", '#bbbbbb')
-      .attr("stroke-dasharray", '2 4')
-      .attr("visibility", "hidden")
-    this.mouseG.append('g')
-      .attr("class", 'y')
-      .append('line')
-      .attr("x1", 0)
-      .attr("y1", 0)
-      .attr("x2", 0)
-      .attr("y2", this.innerHeight)
-      .attr("stroke", '#bbbbbb')
-      .attr("stroke-dasharray", '2 4')
-      .attr("visibility", "hidden")
-    this.mouseG.append('g')
-      .attr("class", 'text')
-      .append('text')
-      .attr("fill", "grey")
-      .attr("x", 4)
-      .attr("y", 4)
-    let that = this;
-    this.mouseG.selectAll("rect.mouse")  // For new circle, go through the update process
-      .data([0])
-      .enter()
-      .append("rect")
-      .attr("class", 'mouse')
-      .attr("width", this.innerWidth)
-      .attr("height", this.innerHeight)
-      .attr("fill-opacity", 0)
-      .on("mouseover", function(){
-        that.mouseG.selectAll("g.x line")
-          .attr("visibility", "visible")
-        that.mouseG.selectAll("g.y line")
-          .attr("visibility", "visible")
-      })
-      .on("mousemove", function(){
-        let [x, y] = d3.mouse(this)
-        let xBars = Math.round(x / that.barWidth)
-        let xAlign = Math.round(x / that.barWidth) * that.barWidth + that.barWidth / 2
-        if (that.chartDm.klines && that.chartDm.klines.data) {
-          let data = that.chartDm.klines.data[that.chartDm.left_id + xBars]
-          let showText = `高 ${data.high} 开 ${data.open} 低 ${data.low} 收 ${data.close}`
-          that.mouseG.selectAll("g.text text")
-            .text(showText)
+    this.crosshair  = new Crosshair({
+      parentG: this.svg,
+      name: 'crosshair',
+      width: this.innerWidth,
+      height: this.innerHeight,
+      left: this.margin.left,
+      top: this.margin.top,
+      chartDm: this.chartDm
+    })
 
-          that.mouseG.selectAll("g.x line")
-            .attr('y1', y)
-            .attr('y2', y)
-          that.mouseG.select("g.y line")
-            .attr('x1', xAlign)
-            .attr('x2', xAlign)
-        }
-      })
-      .on("mouseleave", function(){
-        that.mouseG.selectAll("g.x line")
-          .attr("visibility", "hidden")
-        that.mouseG.selectAll("g.y line")
-          .attr("visibility", "hidden")
-      })
-
-    // console.log(this.svg)
-    // console.log(this.mouseG)
-    // this.svg.on('click', function(){
-    //     console.log('click', d3.mouse(this))
-    //   })
-    //   .on('mouseenter', function(){
-    //     console.log('mouseenter', d3.mouse(this))
-    //   })
-    //   .on('mousemove', function(){
-    //     console.log(d3.event.x, d3.mouse(this))
-    //   })
-    //   .on('mouseleave', function(){
-    //     console.log('mouseleave', d3.mouse(this))
-    //   })
-
-
-
-    AppendG(this.rootG, 0, this.innerHeight, "x axis")
-    // 设置初始化柱子大小
-    this.setBarNumbers();
     // 处理拖动事件  使用 rootG 要设置长宽
     let initX = null;
+    let that = this
     let dragOnMove = d3.drag()
       .on("start", function () {
         initX = d3.event.x
-        that.mouseG.selectAll("g.x line")
-          .attr("visibility", "hidden")
-        that.mouseG.selectAll("g.y line")
-          .attr("visibility", "hidden")
+        that.crosshair.hide()
       }).on("drag", function () {
-        let moves = Math.round((d3.event.x - initX) / that.barWidth);
+        let moves = Math.round((d3.event.x - initX) / that.chartDm.barWidth);
         if (Math.abs(moves) > 0) {
           initX = d3.event.x;
           that.move(moves) // 移动 moves 柱子
         }
       }).on("end", function () {
         initX = null
-        that.mouseG.selectAll("g.x line")
-          .attr("visibility", "visible")
-        that.mouseG.selectAll("g.y line")
-          .attr("visibility", "visible")
+        that.crosshair.show()
       });
 
     this.svg.call(dragOnMove)
@@ -290,14 +380,80 @@ class Chart {
     let zoom = d3.zoom()
       .on('zoom', function () {
         deltaY += d3.event.sourceEvent.deltaY
-        if (Math.abs(deltaY) >= Chart.ZOOM_SENSITIVITY) {
-          let _zoom = Math.round(Math.abs(deltaY) / Chart.ZOOM_SENSITIVITY)
+        if (Math.abs(deltaY) >= ChartSet.ZOOM_SENSITIVITY) {
+          let _zoom = Math.round(Math.abs(deltaY) / ChartSet.ZOOM_SENSITIVITY)
           _zoom = deltaY > 0 ? _zoom : -_zoom
           that.debounce(that.zoom, 200).bind(that)(_zoom)
           deltaY = 0
         }
       })
-    this.svg.call(zoom)
+    this.svg.call(zoom).on("dblclick.zoom", null)
+  }
+
+  get width () {
+    return this.outerWidth
+  }
+
+  set width (w) {
+    if (w < this.margin.left + this.margin.right + ChartSet.INNER_WIDTH_MIN) return
+    this.outerWidth = w
+    this.innerWidth = this.outerWidth - this.margin.left - this.margin.right
+    this.svg.attr("width", this.outerWidth)
+
+    this.chartDm.width = this.innerWidth
+    // 图布局重新计算
+    this.plotsManager.width = this.innerWidth
+    // 图布局放置
+    this.mainPlot.width = this.plotsManager.positions[0].width
+    for (let sub in this.subPlots) {
+      this.subPlots[sub].width = this.plotsManager.positions[1].width
+    }
+    // 鼠标交互层布局
+    this.crosshair.width = this.innerWidth
+    // 账户显示层布局
+
+  }
+
+  get height () {
+    return this.outerHeight
+  }
+
+  set height (h) {
+    if (h < this.margin.top + this.margin.bottom + ChartSet.INNER_HEIGHT_MIN) return
+    this.outerHeight = h
+    this.innerHeight = this.outerHeight - this.margin.top - this.margin.bottom
+    this.svg.attr("height", this.outerHeight)
+
+    // 图布局重新计算
+    this.plotsManager.height = this.innerHeight
+    // 图布局放置
+    this.mainPlot.height = this.plotsManager.positions[0].height
+    this.mainPlot.top = this.plotsManager.positions[0].top
+    for (let sub in this.subPlots) {
+      this.subPlots[sub].height = this.plotsManager.positions[1].height
+      this.subPlots[sub].top = this.plotsManager.positions[1].top
+    }
+    // 鼠标交互层布局
+    this.crosshair.height = this.innerHeight
+    // 账户显示层布局
+  }
+
+  set symbol (s) {
+    this.chartDm.symbol = s
+    setTimeout(this.draw.bind(this), 0)
+  }
+
+  set duration (d) {
+    this.chartDm.duration = d
+    setTimeout(this.draw.bind(this), 0)
+  }
+
+  get symbol () {
+    return this._symbol
+  }
+
+  get duration () {
+    return this._duration
   }
 
   debounce (fn, delay) {
@@ -313,77 +469,25 @@ class Chart {
         fn.apply(context, args)
       }, delay)
     }
-
-    // function debouce(func, delay, immediate){
-    //   let timer = null
-    //   return function(){
-    //     var context = this;
-    //     var args = arguments;
-    //     if(timer) clearTimeout(time);
-    //     if(immediate){
-    //       //根据距离上次触发操作的时间是否到达delay来决定是否要现在执行函数
-    //       var doNow = !timer;
-    //       //每一次都重新设置timer，就是要保证每一次执行的至少delay秒后才可以执行
-    //       timer = setTimeout(function(){
-    //         timer = null;
-    //       },delay);
-    //       //立即执行
-    //       if(doNow){
-    //         func.apply(context,args);
-    //       }
-    //     }else{
-    //       timer = setTimeout(function(){
-    //         func.apply(context,args);
-    //       },delay);
-    //     }
-    //   }
-    // }
   }
 
-  setHeight(h) {
-    this.outerHeight = h;
-    this.innerHeight = this.outerHeight - this.margin.top - this.margin.bottom;
-    this.svg.attr("height", this.outerHeight);
-    this.rootG.select('g.x.axis')
-      .attr("transform", "translate(0," + this.innerHeight + ")")
+  addIndicator (opts) {
+    let id = opts.id
+    this.indicators[id] = opts
 
-    this.plotsManager.height = this.innerHeight
-
-    this.mainPlot.height = this.plotsManager.positions[0].height
-    this.mainPlot.top = this.plotsManager.positions[0].top
-    for (let sub in this.subPlots) {
-      this.subPlots[sub].height = this.plotsManager.positions[1].height
-      this.subPlots[sub].top = this.plotsManager.positions[1].top
+    switch (opts.name) {
+      case 'ma':
+        this.indicators[id].calculator = new MA(opts)
+        break
+      case 'boll':
+        this.indicators[id].calculator = new BOLL(opts)
+        break
     }
-    this.draw()
+    this.mainPlot.addIndicator(this.indicators[id])
   }
 
-  setBarNumbers(barNumbers = this.chartDm.view_width) {
-    this.barNumbers = barNumbers
-    this.barWidth = this.innerWidth / this.barNumbers
-    this.xScale.range([0, this.innerWidth - this.barWidth])
-    this.rootG.selectAll("g.x.axis").attr("transform", "translate(" + ( this.barWidth / 2) + "," + this.innerHeight + ")")
-    this.barPaddingTimes = 0.2 // 柱子左右各留 20% 空白
-    this.barPadding = this.barWidth * this.barPaddingTimes
-    if (this.chartDm.view_width !== this.barNumbers) this.chartDm.view_width = this.barNumbers
-    if (this.mainPlot) {
-      this.mainPlot.barWidth = this.barWidth
-      this.mainPlot.barPadding = this.barPadding
-      for (let sub in this.subPlots) {
-        this.subPlots[sub].barWidth = this.barWidth
-        this.subPlots[sub].barPadding = this.barPadding
-      }
-    }
-  }
-
-  setSymbol (s) {
-    this.chartDm.symbol = s
-    this.draw()
-  }
-
-  setDuration (d) {
-    this.chartDm.duration = d
-    this.draw()
+  showIndicator (opts) {
+    this.mainPlot.showIndicator(opts.id, opts.show)
   }
 
   move(moves) { // moves 正数右移 负数左移 moves 根柱子
@@ -392,25 +496,34 @@ class Chart {
   }
 
   zoom(n) { // n 正数放大/负数缩小 n 根柱子
-    let tempBarWidth = this.innerWidth / (this.barNumbers - n)
-    if (tempBarWidth >= Chart.BAR_WIDTH_MIN && tempBarWidth <= Chart.BAR_WIDTH_MAX) {
-      this.setBarNumbers(this.barNumbers - n)
+    let oldBarWidth = this.chartDm.barWidth
+    this.chartDm.barWidth -= n
+    if (oldBarWidth !== this.chartDm.barWidth){
       this.draw()
     }
   }
 
   drawXAxis() {
+    // X 轴数据范围
     this.xScale.domain([this.chartDm.left_id, this.chartDm.right_id])
-    let data = this.chartDm.klines.data
-    this.xAxis.tickFormat((x) => {
-      return data[x] && data[x].datetime ? MultiFormat(data[x].datetime / 1e6) : ''
+
+    // X 轴位置
+    this.xScale.rangeRound([0, this.chartDm.barNumbers * this.chartDm.barWidth - this.chartDm.barWidth])
+    this.rootG.selectAll("g.x.axis")
+      .attr("transform", "translate(" + (this.chartDm.barWidth / 2) + "," + (this.innerHeight + 0.5) + ")")
+
+    let klines = this.chartDm.klines
+    this.xAxis.tickFormat((x, i) => {
+      console.log(x, i)
+      return klines[x] && klines[x].datetime ? MultiFormat(klines[x].datetime / 1e6) : ''
     })
     this.rootG.selectAll("g.x.axis").call(this.xAxis)
   }
 
   draw() {
+    console.log('draw', this.chartDm.left_id, this.chartDm.right_id)
     if (this.chartDm.left_id === -1 || this.chartDm.right_id === -1) return false
-    this.showLoading(false)
+    if(this.loading.show) this.loading.show = false
     this.drawXAxis()
     this.mainPlot.draw()
     for (let sub in this.subPlots) {
@@ -419,4 +532,4 @@ class Chart {
   }
 }
 
-export default Chart
+export default ChartSet

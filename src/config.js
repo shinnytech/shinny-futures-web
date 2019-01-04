@@ -42,7 +42,7 @@ const QuotesTableRow = [
     prop: 'datetime',
     width: 100,
     formatter: function (item) {
-      return item['datetime'].slice(11, 23)
+      return item['datetime'] ? item['datetime'].slice(11, 23) : ''
     }
   }, {
     name: '买价',

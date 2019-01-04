@@ -3,48 +3,49 @@ import Candle from './candlestick'
 import Volume from "./volume";
 import Oi from "./oi";
 
-class Plot {
+import Indicator from '../indicator/indicator'
+import SVG_G from './svg_g'
+
+
+class Plot_SVG_G extends SVG_G{
   constructor (opts) {
-
-    // this.left = opts.left
-    this.name = opts.name
-    this.type = opts.type
+    super(opts)
     this.xScale = opts.xScale // d3.line()
-    // init yScale
-
-    this.yScale = d3.scaleLinear().range([1, 0])
-    if (opts.yAxisPos === 'right') {
-      this.yAxis = d3.axisRight().scale(this.yScale)
-    } else {
-      this.yAxis = d3.axisLeft().scale(this.yScale)
-    }
-
-    this._top = opts.top
-    this.barWidth = opts.barWidth
-    this.barPadding = opts.barPadding
-    this.width = opts.width
-    this.height = opts.height
-
-    this.parentG = opts.parentG
-    this.g = this.parentG
-      .append('g')
-      .attr('class', this.name)
-      .attr("transform", "translate(0," + this.top + ")")
-
-    this.g.append("g").attr("class", "y axis")
-    if (opts.yAxisPos === 'right') {
-      this.g.select('g.y.axis')
-        .attr("transform", "translate(" + (opts.width) + ",0)")
-    }
-       // .append("text")
-       //     .attr("transform", "rotate(-90)")
-       //     .attr("y", 6)
-       //     .attr("dy", ".71em")
-       //     .style("text-anchor", "end")
-       // .text("Price");
-
     this.chartDm = opts.chartDm
-    // this.type
+    // init yScale
+    this.yScale = d3.scaleLinear().range([opts.height, 0])
+    this.yAxisLeft = d3.axisLeft().scale(this.yScale)
+    this.yAxisRight = d3.axisRight().scale(this.yScale)
+    this.g.append("g")
+      .attr("class", "y axis left")
+    this.g.append("g")
+      .attr("class", "y axis right")
+      .attr("transform", "translate(" + opts.width + ",0)")
+    // paths
+    this.paths = {}
+  }
+
+  set height(h) {
+    super.height = h
+    this.yScale.range([h, 0])
+  }
+
+  set width(w) {
+    super.width = w
+    this.g.select('g.y.axis.right')
+      .attr("transform", "translate(" + w + ",0)")
+  }
+
+  addPaths(){
+
+  }
+
+  removePaths(){
+
+  }
+
+
+  init () {
     switch (this.type) {
       case 'candle':
         this.path = new Candle({
@@ -66,50 +67,243 @@ class Plot {
         break
     }
 
-    this.path.createPaths().forEach( classNames => {
+    this.path && this.path.createPaths().forEach( classNames => {
+      this.appendPlotTypePath(classNames.split('.'))
+    })
+    this.indicators = {}
+  }
+
+  addIndicator (opts) {
+    switch (opts.name) {
+      case "ma":
+        this.indicators[opts.id] = new Indicator({
+          calculator: opts.calculator,
+          name: opts.id,
+          plot: this
+        })
+        break
+      case "boll":
+        this.indicators[opts.id] = new Indicator({
+          calculator: opts.calculator,
+          name: opts.id,
+          plot: this
+        })
+        break
+    }
+
+    this.indicators[opts.id] && this.indicators[opts.id].createPaths().forEach(classNames => {
+      classNames = opts.id + '.' + classNames
       this.appendPlotTypePath(classNames.split('.'))
     })
   }
-  get top(){
-    return this._top
+
+
+
+  appendPathsGroupBy (classes) {
+    Object.keys(classes).forEach(key => {
+      this.appendPlotTypePath([this.name, key]);
+    })
   }
 
-  set top(t){
-    this._top = t
-    this.g.attr("transform", "translate(0," + this._top + ")")
+  appendPlotTypePath(classNames) {
+    this.g.selectAll(`path.${Plot.ArrayJoin(classNames, '.')}`)
+      .data(d => [d])
+      .enter()
+      .append('path')
+      .attr('class', `${Plot.ArrayJoin(classNames, ' ')}`);
   }
 
-  get height() {
-    return this._height
+
+  getYPriceRange (left_id, right_id, center = null) {
+    let min = Infinity, max = -Infinity
+    if (center) {
+      let dis = 0
+      for (let i = left_id; i<= right_id; i++) {
+        let d = this.chartDm.klines[i]
+        dis = Math.max(Math.abs(d.high - center), Math.abs(d.low - center), dis)
+      }
+      min = center - dis
+      max = center + dis
+    } else {
+      for (let i = left_id; i<= right_id; i++) {
+        let d = this.chartDm.klines[i]
+        if (d) {
+          min = Math.min(min, d.low)
+          max = Math.max(max, d.high)
+        }
+      }
+
+      if (this.chartDm.quote && this.chartDm.quote.price_tick) {
+        let padding = 20 * this.chartDm.quote.price_tick
+        min -= padding
+        max += padding
+      }
+    }
+    return [min, max]
+  }
+
+  getYMaxRange(left_id, right_id, key){
+    let max = -Infinity
+    for (let i = left_id; i<= right_id; i++) {
+      let d = this.chartDm.klines[i]
+      if (d) {
+        max = Math.max(max, d[key])
+      }
+    }
+    return max
+  }
+
+  getYMinRange(left_id, right_id, key){
+    let min = Infinity
+    for (let i = left_id; i<= right_id; i++) {
+      let d = this.chartDm.klines[i]
+      if (d) {
+        min = Math.min(min, d[key])
+      }
+    }
+    return min
+  }
+
+  draw () {
+
+    let yDomain = null
+    switch (this.type) {
+      case 'candle':
+        yDomain = this.getYPriceRange(this.chartDm.left_id, this.chartDm.right_id)
+        break
+      case 'volume':
+        yDomain = [0, this.getYMaxRange(this.chartDm.left_id, this.chartDm.right_id, 'volume')]
+        break
+      case 'oi':
+        yDomain = [this.getYMinRange(this.chartDm.left_id, this.chartDm.right_id, 'close_oi'), this.getYMaxRange(this.chartDm.left_id, this.chartDm.right_id, 'close_oi')]
+        break
+    }
+
+    this.yScale.domain(yDomain)
+    this.g.selectAll("g.y.axis").call(this.yAxis)
+
+    let paths = this.path.calcPaths(this.chartDm.left_id, this.chartDm.right_id, this.chartDm.klines)
+
+    for (let key in paths) {
+      this.g.select(`path.${key}`).attr('d', paths[key])
+    }
+
+    for (let k in this.indicators) {
+      this.indicators[k].calculator.calc(this.chartDm.left_id, this.chartDm.right_id, this.chartDm.klines)
+    }
+
+    for (let k in this.indicators) {
+      let paths = this.indicators[k].calcPaths(this.chartDm.left_id, this.chartDm.right_id, this.chartDm.klines)
+      for (let key in paths) {
+        this.g.select(`path.${k}.${key}`).attr('d', paths[key])
+      }
+    }
+  }
+
+  showIndicator (name, isShow = true) {
+    for (let k in this.indicators) {
+      if (k === name) {
+        this.g.selectAll(`path.${k}`)
+          .attr("visibility", isShow ? "visible" : "hidden")
+      }
+    }
+  }
+
+  static ArrayJoin (array, delimiter=' ') {
+    if (!array.length) return ''
+    return array.join(delimiter)
+  }
+
+  static UpDownEqual() {
+    return {
+      up : (d) => d.open < d.close,
+      down : (d) => d.open > d.close,
+      equal : (d) => d.open === d.close
+    }
+  }
+}
+
+
+
+class Plot extends SVG_G{
+  constructor (opts) {
+    super(opts)
+    this.type = opts.type
+    this.xScale = opts.xScale // d3.line()
+    this.chartDm = opts.chartDm
+    // init yScale
+    this.yScale = d3.scaleLinear().range([opts.height, 0])
+    this.yAxis = opts.yAxisPos === 'right' ? d3.axisRight().scale(this.yScale) : this.yAxis = d3.axisLeft().scale(this.yScale)
+
+    this.g.append("g").attr("class", "y axis " + (opts.yAxisPos === 'right' ? 'right' : ''))
+    if (opts.yAxisPos === 'right') {
+      this.g.select('g.y.axis.right')
+        .attr("transform", "translate(" + opts.width + ",0)")
+    }
+    this.init()
+  }
+
+  init () {
+    switch (this.type) {
+      case 'candle':
+        this.path = new Candle({
+          name: this.name,
+          plot: this
+        })
+        break
+      case 'volume':
+        this.path = new Volume({
+          name: this.name,
+          plot: this
+        })
+        break
+      case 'oi':
+        this.path = new Oi({
+          name: this.name,
+          plot: this
+        })
+        break
+    }
+
+    this.path && this.path.createPaths().forEach( classNames => {
+      this.appendPlotTypePath(classNames.split('.'))
+    })
+    this.indicators = {}
+  }
+
+  addIndicator (opts) {
+    switch (opts.name) {
+      case "ma":
+        this.indicators[opts.id] = new Indicator({
+          calculator: opts.calculator,
+          name: opts.id,
+          plot: this
+        })
+        break
+      case "boll":
+        this.indicators[opts.id] = new Indicator({
+          calculator: opts.calculator,
+          name: opts.id,
+          plot: this
+        })
+        break
+    }
+
+    this.indicators[opts.id] && this.indicators[opts.id].createPaths().forEach(classNames => {
+      classNames = opts.id + '.' + classNames
+      this.appendPlotTypePath(classNames.split('.'))
+    })
   }
 
   set height(h) {
-    this._height = h
+    super.height = h
     this.yScale.range([h, 0])
   }
 
-  get width() {
-    return this._Width
-  }
-
   set width(w) {
-    this._Width = w
-  }
-
-  get barWidth() {
-    return this._barWidth
-  }
-
-  set barWidth(w) {
-    this._barWidth = w
-  }
-
-  get barPadding() {
-    return this._barPadding
-  }
-
-  set barPadding(w) {
-    this._barPadding = w
+    super.width = w
+    this.g.select('g.y.axis.right')
+      .attr("transform", "translate(" + w + ",0)")
   }
 
   appendPathsGroupBy (classes) {
@@ -132,21 +326,22 @@ class Plot {
     if (center) {
       let dis = 0
       for (let i = left_id; i<= right_id; i++) {
-        let d = this.chartDm.klines.data[i]
+        let d = this.chartDm.klines[i]
         dis = Math.max(Math.abs(d.high - center), Math.abs(d.low - center), dis)
       }
       min = center - dis
       max = center + dis
     } else {
       for (let i = left_id; i<= right_id; i++) {
-        let d = this.chartDm.klines.data[i]
+        let d = this.chartDm.klines[i]
         if (d) {
           min = Math.min(min, d.low)
           max = Math.max(max, d.high)
         }
       }
+
       if (this.chartDm.quote && this.chartDm.quote.price_tick) {
-        let padding = 5 * this.chartDm.quote.price_tick
+        let padding = 20 * this.chartDm.quote.price_tick
         min -= padding
         max += padding
       }
@@ -157,7 +352,7 @@ class Plot {
   getYMaxRange(left_id, right_id, key){
     let max = -Infinity
     for (let i = left_id; i<= right_id; i++) {
-      let d = this.chartDm.klines.data[i]
+      let d = this.chartDm.klines[i]
       if (d) {
         max = Math.max(max, d[key])
       }
@@ -168,7 +363,7 @@ class Plot {
   getYMinRange(left_id, right_id, key){
     let min = Infinity
     for (let i = left_id; i<= right_id; i++) {
-      let d = this.chartDm.klines.data[i]
+      let d = this.chartDm.klines[i]
       if (d) {
         min = Math.min(min, d[key])
       }
@@ -177,6 +372,7 @@ class Plot {
   }
 
   draw () {
+
     let yDomain = null
     switch (this.type) {
       case 'candle':
@@ -193,12 +389,32 @@ class Plot {
     this.yScale.domain(yDomain)
     this.g.selectAll("g.y.axis").call(this.yAxis)
 
-    let paths = this.path.calcPaths(this.chartDm.left_id, this.chartDm.right_id, this.chartDm.klines.data)
+    let paths = this.path.calcPaths(this.chartDm.left_id, this.chartDm.right_id, this.chartDm.klines)
+
     for (let key in paths) {
       this.g.select(`path.${key}`).attr('d', paths[key])
     }
+
+    for (let k in this.indicators) {
+      this.indicators[k].calculator.calc(this.chartDm.left_id, this.chartDm.right_id, this.chartDm.klines)
+    }
+
+    for (let k in this.indicators) {
+      let paths = this.indicators[k].calcPaths(this.chartDm.left_id, this.chartDm.right_id, this.chartDm.klines)
+      for (let key in paths) {
+        this.g.select(`path.${k}.${key}`).attr('d', paths[key])
+      }
+    }
   }
 
+  showIndicator (name, isShow = true) {
+    for (let k in this.indicators) {
+      if (k === name) {
+        this.g.selectAll(`path.${k}`)
+          .attr("visibility", isShow ? "visible" : "hidden")
+      }
+    }
+  }
 
   static ArrayJoin (array, delimiter=' ') {
     if (!array.length) return ''

@@ -13,6 +13,9 @@
 
 <script>
     import {mapGetters} from 'vuex'
+    import {DM, QuoteWs} from '@/store/websockets/index'
+
+
   export default {
     data() {
       return {
@@ -47,6 +50,22 @@
         } else {
             this.ins_id = this.quote.instrument_id
         }
+
+//      this.quote = DM.getQuote(this.symbol)  //this.getQuote(this.symbol)
+//      this.quote = this.getQuote(this.symbol)
+//      DM.subscribe('quotes/' + this.symbol, this.update)
+//      if (this.quote && this.quote.instrument_id === this.symbol ) {
+//          this.priceDecs = this.quote.price_decs
+//          this.priceTick = this.quote.price_tick
+//          this.ins_name = this.quote.ins_name
+//          if (this.quote.class === "FUTURE_CONT") {
+//            this.ins_id = this.quote.underlying_symbol
+//          } else if (this.quote.class === "FUTURE_INDEX") {
+//            this.ins_id = this.quote.underlying_product
+//          } else {
+//            this.ins_id = this.quote.instrument_id
+//          }
+//      }
     },
     mounted() {
     },
@@ -62,7 +81,7 @@
     methods: {
         classNameStr: function (item){
             if (typeof item['className'] === 'function') {
-                return item['className'](this.quote)
+                return this.quote ? item['className'](this.quote) : ''
             } else {
                 return item['className']
             }
@@ -90,7 +109,10 @@
             e.stopPropagation()
             e.preventDefault()
             this.$emit('rowContextmenu',  this.quote)
-        }
+        },
+      update: function (q){
+//          console.log(this.quote)
+      }
     }
   }
 </script>

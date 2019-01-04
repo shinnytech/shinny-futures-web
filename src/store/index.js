@@ -4,8 +4,7 @@ import mutations from './mutations'
 import getters from './getters'
 import actions from './actions'
 import Tags, { InitTagsQuotesMap } from '@/store/tags'
-import { WebSocketPlugin } from './websockets/index'
-
+import { QuoteWs, TradeWs, DM, WebSocketPlugin } from './websockets/index'
 
 import AccountModule from '@/store/modules/Accounts'
 import PositionsModule from '@/store/modules/Positions'
@@ -31,6 +30,7 @@ export default new Vuex.Store({
     'banks': BanksModule
   },
   state: {
+    dm: DM,
     // 用户交易
     brokers: [],
     bid: '',

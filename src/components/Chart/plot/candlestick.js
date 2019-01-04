@@ -12,6 +12,7 @@ class Candle {
   constructor (opts){
     this.name = opts.name ? opts.name : (new Date().getTime())
     this.plot = opts.plot ? opts.plot : null
+    this.chartDm = this.plot.chartDm
     this.types = ['line', 'body']
   }
   createPaths () {
@@ -21,10 +22,11 @@ class Candle {
     return this.paths
   }
   calcPaths (left_id, right_id, data) {
-    if (!this.plot.yScale || !this.plot.xScale || !this.plot.barWidth || !this.plot.barPadding) return
+    if (!this.plot.yScale || !this.plot.xScale || !this.chartDm) return
     let _path = {}
     this.paths.forEach(k => _path[k] = '')
-    for (let i = left_id; i<= right_id && data[i]; i++) {
+    for (let i = left_id; i<= right_id; i++) {
+      if (!data[i]) continue
       Object.keys(UpDownEqual).forEach(key => {
         if (UpDownEqual[key](data[i])) {
           _path[[this.name, 'body', key].join('.')] += this.bodyPath(data[i], i)
@@ -35,23 +37,27 @@ class Candle {
     return _path
   }
   bodyPath (d, id){
-    let o = this.plot.yScale(d.open)
-    let c = this.plot.yScale(d.close)
-    let x = this.plot.xScale(id) + this.plot.barPadding
-    let width = this.plot.barWidth - this.plot.barPadding * 2
-    let path = `M ${x} ${o} l ${width} ${0}`
-    if(o !== c) {
-      path += ` L ${x + width} ${c} l ${-width} ${0} L ${x} ${o}`;
+    let o = Math.round(this.plot.yScale(d.open))
+    let c = Math.round(this.plot.yScale(d.close))
+    let x = this.plot.xScale(id) + this.chartDm.barPadding
+    let width = this.chartDm.barWidth - this.chartDm.barPadding * 2
+    let path = ''
+    if(d.open !== d.close) {
+      path = `M ${x} ${o} L ${x + width} ${o} L ${x + width} ${c} L ${x} ${c} L ${x} ${o}`;
+    } else {
+      path = `M ${x} ${o + 0.5} L ${x + width} ${o + 0.5}`;
     }
     return path
   }
   linePath (d, id){
-    let h = this.plot.yScale(d.high)
-    let l = this.plot.yScale(d.low)
-    let x = this.plot.xScale(id) + this.plot.barWidth / 2
+    let h = Math.round(this.plot.yScale(d.high))
+    let l = Math.round(this.plot.yScale(d.low))
+    let x = this.plot.xScale(id) + this.chartDm.barWidth / 2
     let path = `M ${x} ${h} L ${x} ${l}`
     return path
   }
 }
+
+
 
 export default Candle

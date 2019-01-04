@@ -1,58 +1,35 @@
 import Vue from 'vue'
 import App from './App.vue'
+import router from './router/index'
+import store from './store/index'
 // import './registerServiceWorker'
-import './iview.js'
+import './plugins/iview.js'
+import './plugins/events.js'
 
 Vue.config.productionTip = false
 
-// ------------------- router -------------------
-import Router from 'vue-router'
-import Quotes from './views/Quotes.vue'
-import User from './views/User.vue'
-import Chart from './views/Charts.vue'
-import Tags from '@/store/tags'
-Vue.use(Router)
-const router = new Router({
-  routes: [
-    {
-      path: '/quotes/:tag',
-      name: 'quotes',
-      components: {
-        quotes: Quotes,
-        user: User
-      }
-    },
-    {
-      path: '/charts/:instrument_id',
-      name: 'charts',
-      components: {
-        // quotes: Chart,
-        quotes: () => import(/* webpackChunkName: "Charts" */ './views/Charts.vue'), // lazy-loaded
-        user: User
-      }
-    },
-    {
-      path: '/*',
-      redirect: '/quotes/' + Tags[0].id  // DefaultTag
-    }]
-})
 
-// ------------------- store -------------------
-import store from './store/index'
 store.dispatch('init')
 
-let rootData = {
+const RootData = {
   name: 'tianqin-web',
   windowHeight: window.innerHeight,
   windowWidth: window.innerWidth,
   appSplit: 0.6
 }
 
-new Vue({
-  data: rootData,
+const RootApp = new Vue({
+  data: RootData,
   router,
   store,
   render: h => h(App),
+  methods: {
+    handlerResize: function(){
+      RootData.windowHeight = window.innerHeight
+      RootData.windowWidth = window.innerWidth
+      this.$emit('global:resize')
+    }
+  },
   beforeCreate: () => console.log('beforeCreate'),
   created: () => {
     // https://developer.mozilla.org/en-US/docs/Web/Events/resize
@@ -61,14 +38,10 @@ new Vue({
     function resizeThrottler() {
       if ( !resizeTimeout ) {
         resizeTimeout = setTimeout(function() {
-          resizeTimeout = null;
-          actualResizeHandler();
-        }, 66);
+          resizeTimeout = null
+          RootApp.handlerResize()
+        }, 66)
       }
-    }
-    function actualResizeHandler() {
-      rootData.windowHeight = window.innerHeight
-      rootData.windowWidth = window.innerWidth
     }
   },
   beforeMount: () => console.log('beforeMount'),
