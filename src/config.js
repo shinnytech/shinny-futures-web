@@ -26,7 +26,7 @@ const QuotesTableRow = [
   {
     name: '合约代码',
     prop: 'instrument_id',
-    width: 100
+    width: 80
   }, {
     name: '最新价',
     prop: 'last_price',
@@ -40,9 +40,9 @@ const QuotesTableRow = [
   }, {
     name: '时间',
     prop: 'datetime',
-    width: 100,
+    width: 60,
     formatter: function (item) {
-      return item['datetime'] ? item['datetime'].slice(11, 23) : ''
+      return item['datetime'] ? item['datetime'].slice(11, 19) : ''
     }
   }, {
     name: '买价',
