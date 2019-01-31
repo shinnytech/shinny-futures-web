@@ -1,13 +1,14 @@
 <template>
-    <Table :height="height" :columns="columns" :data="positions"></Table>
+    <Table :height="height" :columns="columns" :data="positionsArr"></Table>
 </template>
 
 <script>
-  import {mapGetters} from 'vuex'
-  import {FormatPrice} from '@/plugins/utils'
+  import {FormatPrice, ObjectToArray} from '@/plugins/utils'
+
   export default {
     data() {
       return {
+        positionsArr: [],
         columns: [
           {
             title: '合约代码',
@@ -103,10 +104,17 @@
         default: false
       }
     },
-    mounted() {},
-    computed: {
-      ...mapGetters({
-        positions: 'positions/GET_POSITIONS'
+    mounted() {
+      this.$on('tqsdk:rtn_data', function(){
+        let positions = this.$tqsdk.get_positions()
+        if (positions && this.$tqsdk.is_changed(positions)) {
+          ObjectToArray(
+            positions,
+            this.positionsArr,
+            (v) => ['exchange_id'] + '.' + v['instrument_id'],
+            (v) => v.volume_long > 0 || v.volume_short > 0
+          )
+        }
       })
     },
     methods: {
@@ -150,37 +158,32 @@
           return volume > 0 ? h('div', btns) : h('div', [])
         },
         handleClose (index, row, direction) {
-            let quote = this.$store.getters['quotes/GET_QUOTE'](row.exchange_id + '.' + row.instrument_id)
             let volume = direction === 'BUY' ? row.volume_short : row.volume_long
-            this.$store.commit('INSERT_ORDER', {
-              symbol: quote.instrument_id,
-              exchange_id: quote.exchange_id,
-              ins_id: quote.ins_id,
+            this.$tqsdk.insert_order({
+              exchange_id: row.exchange_id,
+              ins_id: row.instrument_id,
               direction: direction,
               offset: 'CLOSE',
-              limitPrice: quote.last_price,
+              limit_price: row.last_price,
               volume: volume
             })
         },
         handleCloseOpen (index, row, direction) {
-            let quote = this.$store.getters['quotes/GET_QUOTE'](row.exchange_id + '.' + row.instrument_id)
             let volume = direction === 'BUY' ? row.volume_short : row.volume_long
-            this.$store.commit('INSERT_ORDER', {
-              symbol: quote.instrument_id,
-              exchange_id: quote.exchange_id,
-              ins_id: quote.ins_id,
+            this.$tqsdk.insert_order({
+              exchange_id: row.exchange_id,
+              ins_id: row.instrument_id,
               direction: direction,
               offset: 'CLOSE',
-              limitPrice: quote.last_price,
+              limit_price: row.last_price,
               volume: volume
             })
-            this.$store.commit('INSERT_ORDER', {
-              symbol: quote.instrument_id,
-              exchange_id: quote.exchange_id,
-              ins_id: quote.ins_id,
+          this.$tqsdk.insert_order({
+              exchange_id: row.exchange_id,
+              ins_id: row.instrument_id,
               direction: direction,
               offset: 'OPEN',
-              limitPrice: quote.last_price,
+            limit_price: row.last_price,
               volume: volume
             })
         },

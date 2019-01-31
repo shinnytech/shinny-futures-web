@@ -21,8 +21,7 @@
     </div>
 </template>
 <script>
-  // import TableQuotes from '@/components/TableQuotes.vue'
-  import { mapGetters } from 'vuex'
+    import {mapGetters} from 'vuex'
   import TableQuotes from '@/components/Table/Table.vue'
   import QuoteInfo from '@/components/QuoteInfo.vue'
   import TicksList from '@/components/TicksList.vue'
@@ -54,7 +53,7 @@
       quotesList: function () {
         let list = this.$store.state.tagsQuotesMap[this.$route.params.tag]
         if (list) {
-          this.$store.commit('SUBSCRIBE_QUOTE', list)
+          this.$tqsdk.subscribe_quote(list)
         }
         return list
       },

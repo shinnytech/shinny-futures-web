@@ -5,8 +5,8 @@
     </div>
 </template>
 <script>
-  import {mapGetters} from 'vuex'
 
+  import {FormatDatetime, FormatPrice, FormatDirection, FormatOffset} from '@/plugins/utils'
   export default {
     data() {
       let fieldsName = { // 字段名称
@@ -31,60 +31,111 @@
         columns1: [
           {
             title: fieldsName['balance'],
-            key: 'balance'
+            key: 'balance',
+            align: 'right',
+            render: (h, params) => {
+                return h('div', FormatPrice(params.row.balance))
+            }
           },
           {
             title: fieldsName['available'],
-            key: 'available'
+            key: 'available',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.available))
+            }
           },
           {
             title: fieldsName['pre_balance'],
-            key: 'pre_balance'
+            key: 'pre_balance',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.pre_balance))
+            }
           },
           {
             title: fieldsName['deposit'],
-            key: 'deposit'
+            key: 'deposit',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.deposit))
+            }
           },
           {
             title: fieldsName['withdraw'],
-            key: 'withdraw'
+            key: 'withdraw',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.withdraw))
+            }
           },
           {
             title: fieldsName['commission'],
-            key: 'commission'
+            key: 'commission',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.commission))
+            }
           }
         ],
         columns2: [
           {
             title: fieldsName['static_balance'],
-            key: 'static_balance'
+            key: 'static_balance',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.static_balance))
+            }
           },
           {
             title: fieldsName['position_profit'],
-            key: 'position_profit'
+            key: 'position_profit',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.position_profit))
+            }
           },
           {
             title: fieldsName['float_profit'],
-            key: 'float_profit'
+            key: 'float_profit',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.float_profit))
+            }
           },
           {
             title: fieldsName['close_profit'],
-            key: 'close_profit'
+            key: 'close_profit',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.close_profit))
+            }
           },
           {
             title: fieldsName['margin'],
-            key: 'margin'
+            key: 'margin',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.margin))
+            }
           },
           {
             title: fieldsName['risk_ratio'],
-            key: 'risk_ratio'
+            key: 'risk_ratio',
+            align: 'right',
+            render: (h, params) => {
+              return h('div', FormatPrice(params.row.risk_ratio) + '%')
+            }
           }
         ]
       }
     },
-    computed: {
-      ...mapGetters({
-        account: 'accounts/GET_ACCOUNT'
+    created: function () {
+      this.account = this.$tqsdk.get_account()
+      this.$on('tqsdk:rtn_data', function(){
+        if (this.$tqsdk.is_changed(this.account)) {
+          this.$forceUpdate()
+        }
       })
     }
   }

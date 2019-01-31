@@ -4,12 +4,24 @@ import router from './router/index'
 import store from './store/index'
 // import './registerServiceWorker'
 import './plugins/iview.js'
-import './plugins/events.js'
+import tqsdk from './plugins/tqsdk.js'
+
+tqsdk.on('ready', function(){
+  store.commit('SET_TAGS_QOUTES_MAP', tqsdk.quotesInfo)
+})
+tqsdk.on('error', function(){
+  Vue.prototype.$Message.error('获取合约列表失败，请检查网络后刷新页面。')
+})
 
 Vue.config.productionTip = false
+Vue.config.errorHandler = function (err, vm, info) {
+  console.error(err, vm, info)
+}
 
-
-store.dispatch('init')
+Vue.filter('toPercent', function (value, decs=2) {
+  let n = Number(value)
+  return Number.isFinite(n) ? n.toFixed(decs) : value
+})
 
 const RootData = {
   name: 'tianqin-web',
@@ -30,7 +42,6 @@ const RootApp = new Vue({
       this.$emit('global:resize')
     }
   },
-  beforeCreate: () => console.log('beforeCreate'),
   created: () => {
     // https://developer.mozilla.org/en-US/docs/Web/Events/resize
     window.addEventListener("resize", resizeThrottler, false)
@@ -44,8 +55,5 @@ const RootApp = new Vue({
       }
     }
   },
-  beforeMount: () => console.log('beforeMount'),
-  mounted: () => console.log('mounted'),
-  beforeDestroy: () => console.log('beforeDestroy'),
-  destroyed: () => console.log('destroyed')
 }).$mount('#app')
+

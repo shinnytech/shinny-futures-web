@@ -23,22 +23,32 @@
     </div>
 </template>
 <script>
-import { FormatPrice, FormatDatetime } from '@/plugins/utils'
-import { DM } from '@/store/websockets/index'
+  import { FormatPrice, FormatDatetime } from '@/plugins/utils'
+
 export default {
   data () {
     return {
-      ticks: []
+      ticks: [],
+      quote: this.$tqsdk.get_quote(this.instrument_id)
     }
+  },
+  mounted: function () {
+    this.$on('tqsdk:rtn_data', function(){
+      let ticks = this.$tqsdk.dm.getTicks(this.instrumentId)
+      if (ticks.last_id > 0)
+        this.update()
+    })
   },
   watch: {
     instrumentId: {
       handler (newVal, oldVal) {
-        this.$store.commit('SET_TICK_CHART', { symbol: newVal })
-        this.ticks.splice(0)
-        DM.unsubscribe('ticks/' + oldVal, this.update)
-        DM.subscribe('ticks/' + newVal, this.update)
-        this.update(DM.getByPath('ticks/' + newVal))
+        this.$tqsdk.set_chart({
+          chart_id: 'ticks_chart',
+          symbol: newVal,
+          duration: 0
+        })
+        this.quote = this.$tqsdk.get_quote(newVal)
+        this.ticks.splice(0);
       },
       immediate: true
     }
@@ -47,15 +57,10 @@ export default {
     instrumentId: String,
     height: String
   },
-  computed: {
-    quote: function () {
-      return this.$store.getters['quotes/GET_QUOTE'](this.instrumentId)
-    }
-  },
   methods: {
     genOneTick: function (i, ticks) {
-      let originTick = ticks.data[i]
-      let originPreTick = ticks.data[i - 1]
+      let originTick = ticks[i]
+      let originPreTick = ticks[i - 1]
       if (this.quote && originTick && originPreTick && originTick.volume - originPreTick.volume > 0) {
         let vol_diff = originTick.volume - originPreTick.volume
         let oi_diff = originTick.open_interest - originPreTick.open_interest
@@ -109,26 +114,24 @@ export default {
         return null
       }
     },
-    update: function (ticks) {
+    update: function () {
+      let ticks = this.$tqsdk.dm.getTicks(this.instrumentId)
       let length = 50
       let index = 0
-      if (ticks && ticks.last_id > 0) {
-
-        if (this.ticks.length === 0 ){
-          this.last_id = ticks.last_id
-          for (var i = ticks.last_id; i >= 0; i--) {
-            let temp = this.genOneTick(i, ticks)
-            if (temp !== null) {
-              this.$set(this.ticks, index, temp)
-              index++
-              if (index === length) break
-            }
+      if (this.ticks.length === 0 ){
+        this.last_id = ticks.last_id
+        for (let i = ticks.last_id; i >= 0; i--) {
+          let temp = this.genOneTick(i, ticks)
+          if (temp !== null) {
+            this.$set(this.ticks, index, temp)
+            index++
+            if (index === length) break
           }
-        } else if (this.last_id < ticks.last_id){
-          let temp = this.genOneTick(ticks.last_id, ticks)
-          if (temp !== null && temp.datetime > this.ticks[0].datetime) {
-            this.ticks.splice(0, 0, temp)
-          }
+        }
+      } else if (this.last_id < ticks.last_id){
+        let temp = this.genOneTick(ticks.last_id, ticks)
+        if (temp !== null && temp.datetime > this.ticks[0].datetime) {
+          this.ticks.splice(0, 0, temp)
         }
       }
     }

@@ -17,13 +17,14 @@
     "iview": "^3.2.1",
     "register-service-worker": "^1.5.2",
     "techan": "^0.8.0",
+    "tqsdk": "^1.0.9",
     "vue": "^2.5.21",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.0.5",
-    "@vue/cli-plugin-e2e-nightwatch": "^3.0.5",
+    "@vue/cli-plugin-e2e-nightwatch": "^3.3.0",
     "@vue/cli-plugin-eslint": "^3.0.5",
     "@vue/cli-plugin-pwa": "^3.0.5",
     "@vue/cli-plugin-unit-mocha": "^3.0.5",

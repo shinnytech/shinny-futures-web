@@ -5,17 +5,13 @@
             <div>{{ins_name}}</div>
             <div class="appendix">{{ins_id}}</div>
         </td>
-        <td v-for="(item, index) in tableCol" v-if="index > 0" :class="classNameStr(item)">
+        <td v-for="(item, index) in tableCol" v-if="index > 0" v-bind:key="index" :class="classNameStr(item)">
             <div class="data-content" :style="styleObj(item)" :data-content="formatter(item)"></div>
         </td>
     </tr>
 </template>
 
 <script>
-    import {mapGetters} from 'vuex'
-    import {DM, QuoteWs} from '@/store/websockets/index'
-
-
   export default {
     data() {
       return {
@@ -39,7 +35,7 @@
         }
     },
     beforeMount() {
-        this.quote = this.getQuote(this.symbol)
+        this.quote = this.$tqsdk.get_quote(this.symbol)
         this.priceDecs = this.quote.price_decs
         this.priceTick = this.quote.price_tick
         this.ins_name = this.quote.ins_name
@@ -50,33 +46,13 @@
         } else {
             this.ins_id = this.quote.instrument_id
         }
-
-//      this.quote = DM.getQuote(this.symbol)  //this.getQuote(this.symbol)
-//      this.quote = this.getQuote(this.symbol)
-//      DM.subscribe('quotes/' + this.symbol, this.update)
-//      if (this.quote && this.quote.instrument_id === this.symbol ) {
-//          this.priceDecs = this.quote.price_decs
-//          this.priceTick = this.quote.price_tick
-//          this.ins_name = this.quote.ins_name
-//          if (this.quote.class === "FUTURE_CONT") {
-//            this.ins_id = this.quote.underlying_symbol
-//          } else if (this.quote.class === "FUTURE_INDEX") {
-//            this.ins_id = this.quote.underlying_product
-//          } else {
-//            this.ins_id = this.quote.instrument_id
-//          }
-//      }
     },
     mounted() {
-    },
-    updated() {
-    },
-    beforeDestroy () {
-    },
-    computed: {
-        ...mapGetters({
-            getQuote: 'quotes/GET_QUOTE'
-        })
+      this.$on('tqsdk:rtn_data', function(){
+        if (this.$tqsdk.is_changed(this.quote)){
+          this.$forceUpdate()
+        }
+      })
     },
     methods: {
         classNameStr: function (item){
@@ -109,10 +85,7 @@
             e.stopPropagation()
             e.preventDefault()
             this.$emit('rowContextmenu',  this.quote)
-        },
-      update: function (q){
-//          console.log(this.quote)
-      }
+        }
     }
   }
 </script>

@@ -58,7 +58,6 @@
   import TableOrders from "@/components/TableOrders.vue"
   import TableTrades from "@/components/TableTrades.vue"
 
-
   export default {
     components: {
       TableAccounts,
@@ -84,7 +83,7 @@
       this.$store.subscribe((mutation, state) => {
         // 订阅事件，任何地方选中某行，都会更新这个组件
         if (mutation.type === 'SET_SELECTED_SYMBOL') {
-          let quote = this.$store.getters['quotes/GET_QUOTE'](mutation.payload)
+          let quote = this.$tqsdk.get_quote(mutation.payload)
           if (quote) {
             this.priceTick = Number(quote.price_tick)
             this.limitPrice = Number(quote.last_price)
@@ -113,19 +112,34 @@
     },
     methods: {
       querySearch (queryString, cb) {
-        let results = queryString ? this.$store.getters['quotes/GET_QUOTES_BY_INPUT'](queryString) : []
+        let results = []
+        if (queryString && this.$tqsdk.isQuotesInfoReady){
+          queryString = queryString.toLowerCase()
+          for (let s in this.$tqsdk.quotesInfo) {
+            let symbol = this.$tqsdk.quotesInfo[s]
+            if (symbol.expired || symbol.class !== 'FUTURE') continue
+            if (symbol.instrument_id.toLowerCase().includes(queryString) || symbol.ins_name.toLowerCase().includes(queryString)) results.push(symbol.instrument_id)
+          }
+          if (results.length === 0){
+            for (let s in this.$tqsdk.quotesInfo) {
+              let symbol = this.$tqsdk.quotesInfo[s]
+              if (symbol.expired || symbol.class !== 'FUTURE') continue
+              if (symbol.py.includes(queryString)) results.push(symbol.instrument_id)
+            }
+          }
+        }
         this.searchResult = results
       },
       handleSelectInstrument (item) {},
       insertOrder (direction, offset) {
-        let quote = this.$store.getters['quotes/GET_QUOTE'](this.instrumentId)
-        this.$store.commit('INSERT_ORDER', {
-          symbol: quote.instrument_id,
+        let quote = this.$tqsdk.get_quote(this.instrumentId)
+        console.log(this.limitPrice)
+        this.$tqsdk.insert_order({
           exchange_id: quote.exchange_id,
           ins_id: quote.ins_id,
           direction: direction,
           offset: offset,
-          limitPrice: this.limitPrice,
+          limit_price: this.limitPrice,
           volume: this.volume
         })
       }

@@ -1,6 +1,4 @@
-const InfoServerUrl = 'https://openmd.shinnytech.com/t/md/symbols/latest.json'
-const QuotesServerUrl = 'wss://openmd.shinnytech.com/t/md/front/mobile'
-const TradeServerUrl = 'wss://t.shinnytech.com/trade/shinny'
+
 import {FormatDatetime, FormatPrice, FormatDirection, FormatOffset, FormatStatus} from '@/plugins/utils'
 
 let DefaultUser = {
@@ -9,16 +7,16 @@ let DefaultUser = {
 
 if (process.env.NODE_ENV === 'development') {
   // 开发环境
-  // DefaultUser = {
-  //   bid: '快期模拟',
-  //   user_name: '18521096426',
-  //   password: '123456'
-  // }
   DefaultUser = {
-    bid: 'simnow',
+    bid: '快期模拟',
     user_name: '022632',
     password: '123456'
   }
+  // DefaultUser = {
+  //   bid: 'simnow',
+  //   user_name: '022632',
+  //   password: '123456'
+  // }
 }
 
 
@@ -170,9 +168,6 @@ const QuotesTableRow = [
 ]
 
 export {
-  InfoServerUrl,
-  QuotesServerUrl,
-  TradeServerUrl,
   DefaultUser,
   QuotesTableRow
 }

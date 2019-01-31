@@ -1,5 +1,5 @@
 <template>
-    <div class="chart" :style="{height: height + 'px'}">
+    <div class="chart" :style="{height: height + 'px'}" v-on:keyup="onKeyUp">
         <RadioGroup size="small" type="button" v-model="selectedPeriod">
             <Radio v-for="item in periods" :key="item" :label="item">
                 {{item}}
@@ -19,8 +19,8 @@
 
 <script>
   import * as d3 from 'd3'
-  import {DM, QuoteWs} from '@/store/websockets/index'
   import ChartSet from './index'
+
 
   const Periods = {
     '5s': 5,
@@ -90,12 +90,16 @@
     methods: {
       onchange: function(indicator_name){
         this.chart.showIndicator(this.indicators[indicator_name])
-      }
+      },
+      onKeyUp (e) {
+        console.log('onKeyUp', e)
+      },
     },
     watch: {
       instrumentId: {
         handler(newVal, oldVal) {
-          this.$store.commit('SUBSCRIBE_QUOTE', [this.instrumentId])
+          tqsdk.subscribe_quote([this.instrumentId])
+//          this.$store.commit('SUBSCRIBE_QUOTE', [this.instrumentId])
           if (this.chart) this.chart.symbol = newVal
         },
         immediate: true
@@ -374,19 +378,19 @@
     }
 
     .tradearrow path.sell {
-    fill: #9900FF;
+        fill: #9900FF;
     }
 
     .tradearrow path.highlight {
-    fill: none;
-    stroke-width: 2;
+        fill: none;
+        stroke-width: 2;
     }
 
     .tradearrow path.highlight.buy {
-    stroke: #0000FF;
+        stroke: #0000FF;
     }
 
     .tradearrow path.highlight.sell {
-    stroke: #9900FF;
+        stroke: #9900FF;
     }
 </style>

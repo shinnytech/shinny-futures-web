@@ -1,14 +1,14 @@
 <template>
-    <Table :height="height" :columns="columns" :data="orders"></Table>
+    <Table :height="height" :columns="columns" :data="ordersArr"></Table>
 </template>
 
 <script>
-  import {mapGetters} from 'vuex'
-  import {FormatDatetime, FormatPrice, FormatDirection, FormatOffset, FormatStatus} from '@/plugins/utils'
+  import {FormatDatetime, FormatPrice, FormatDirection, FormatOffset, FormatStatus, ObjectToArray} from '@/plugins/utils'
 
   export default {
     data() {
       return {
+        ordersArr: [],
         columns: [
           {
             title: '委托单ID',
@@ -114,10 +114,11 @@
       }
     },
     mounted() {
-    },
-    computed: {
-      ...mapGetters({
-        orders: 'orders/GET_ORDERS'
+      this.$on('tqsdk:rtn_data', function(){
+        let orders = this.$tqsdk.get_orders()
+        if (this.$tqsdk.is_changed(orders)) {
+          ObjectToArray(orders, this.ordersArr, 'order_id', ()=>1)
+        }
       })
     },
     methods: {
@@ -125,9 +126,7 @@
         return row.status === value
       },
       handleCancelOrder(index, row) {
-        this.$store.commit('CANCEL_ORDER', {
-          order_id: row.order_id
-        })
+        this.$tqsdk.cancel_order(row.order_id)
       },
       rowClick(row, event, column) {
         let symbol = row.exchange_id + '.' + row.instrument_id

@@ -19,30 +19,30 @@
       }
     },
     created: function () {},
-    mounted: function () {
-      this.onKeyChange(27) //esc
-      // this.onKeyChange(13);//enter
-      // this.onKeyChange(96) // ~
-    },
+    mounted: function () {},
     methods: {
       goBack () {
         this.$router.go(-1)
       },
-      onKeyChange (keyCode) {
-        var that = this
-        if (document.addEventListener) {
-          document.addEventListener('keypress', keyPressHandler, true)
-        } else {
-          document.attachEvent('onkeypress', keyPressHandler)
-        }
-
-        function keyPressHandler (evt) {
-          if (evt.keyCode === keyCode) {
-            // 为按下回车时调用的方法
-            that.goBack()
-          }
-        }
-      }
+      onKeyUp (e) {
+        console.log('onKeyUp', e)
+      },
+//      onKeyChange (keyCode) {
+//        var that = this
+//        if (document.addEventListener) {
+//          document.addEventListener('keypress', keyPressHandler, true)
+//        } else {
+//          document.attachEvent('onkeypress', keyPressHandler)
+//        }
+//
+//        function keyPressHandler (evt) {
+//          console.log(evt, evt.keyCode)
+//          if (evt.keyCode === keyCode) {
+//            // 为按下回车时调用的方法
+//            that.goBack()
+//          }
+//        }
+//      }
     }
   }
 </script>

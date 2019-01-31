@@ -58,7 +58,7 @@
             <Col span="6">
             涨跌幅</Col>
             <Col span="6" :class="classOfColor">
-            {{change_present}}</Col>
+            {{ quote.change_percent | toPercent }}%</Col>
             <Col span="6">
             最高</Col>
             <Col span="6">
@@ -111,7 +111,20 @@
 
   export default {
     data() {
-      return {}
+      return {
+        quote: this.$tqsdk.get_quote(this.instrumentId)
+      }
+    },
+    mounted: function () {
+      this.$on('tqsdk:rtn_data', this.update)
+    },
+    watch: {
+      instrumentId: {
+        handler (newVal, oldVal) {
+          this.quote = this.$tqsdk.get_quote(newVal)
+        },
+        immediate: true
+      }
     },
     props: {
       instrumentId: String
@@ -124,18 +137,15 @@
       },
       innerWidth: function () {
         return this.quote.bid_volume1 / (this.quote.bid_volume1 + this.quote.ask_volume1)
-      },
-      quote: function () {
-        return this.$store.getters['quotes/GET_QUOTE'](this.instrumentId)
-      },
-      change_present: function () {
-        let percent = FormatPrice(this.quote['change'] / this.quote['pre_settlement'] * 100, 2)
-        return isNaN(percent) ? '-' : percent + '%'
       }
     },
     methods: {
       formatter: function (price) {
         return FormatPrice(price, this.quote.price_decs)
+      },
+      update: function () {
+        this.quote = this.$tqsdk.get_quote(this.instrumentId)
+        this.$forceUpdate()
       }
     }
   };

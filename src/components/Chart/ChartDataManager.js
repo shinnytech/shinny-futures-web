@@ -1,4 +1,5 @@
 import EventTarget from '@/store/websockets/event'
+import tqsdk from '@/plugins/tqsdk'
 
 export default class ChartDM extends EventTarget {
   static CHART_ID = 'web_kline_chart'
@@ -147,9 +148,7 @@ export default class ChartDM extends EventTarget {
   }
 
   update () {
-    console.log('update1', this.klines[72735])
     if (this.klines && this.klines.last_id && this.klines.last_id > -1) {
-      console.log('update2')
       if (this._left_id === -1 || this._right_id === -1) {
         // 初始化情况
         if (this.chart_right_id && this.chart_right_id > -1) {

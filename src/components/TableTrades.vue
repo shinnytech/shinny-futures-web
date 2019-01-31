@@ -1,14 +1,14 @@
 <template>
-    <Table :height="height" :columns="columns" :data="trades"></Table>
+    <Table :height="height" :columns="columns" :data="tradesArr"></Table>
 </template>
 
 <script>
-  import {mapGetters} from 'vuex'
-  import {FormatDatetime, FormatPrice, FormatDirection, FormatOffset} from '@/plugins/utils'
+  import {FormatDatetime, FormatPrice, FormatDirection, FormatOffset, ObjectToArray} from '@/plugins/utils'
 
   export default {
     data() {
       return {
+        tradesArr: [],
         columns: [
           {
             title: '委托单ID',
@@ -89,11 +89,11 @@
       }
     },
     mounted() {
-    },
-    computed: {
-      ...mapGetters({
-        trades: 'trades/GET_TRADES',
-        filtersObj: 'trades/GET_TRADES_DISTINCT_INSID'
+      this.$on('tqsdk:rtn_data', function(){
+        let trades = this.$tqsdk.get_trades()
+        if (this.$tqsdk.is_changed(trades)) {
+          ObjectToArray(trades, this.tradesArr, 'trade_id', ()=>1)
+        }
       })
     },
     methods: {

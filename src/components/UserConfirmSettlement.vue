@@ -11,23 +11,9 @@
             <Button type="primary" @click="clickOk">确定</Button>
         </div>
       </Modal>
-
-    <!--<el-dialog-->
-      <!--width="80%"-->
-      <!--:lock-scroll="false"-->
-      <!--:append-to-body="true"-->
-      <!--:close-on-click-modal="false"-->
-      <!--:close-on-press-escape="false"-->
-      <!--:visible="visible">-->
-      <!--<span slot="footer" class="dialog-footer">-->
-        <!--<el-button type="primary" @click="clickOk">确 定</el-button>-->
-      <!--</span>-->
-  <!--</el-dialog>-->
 </template>
 <script>
-  import {mapGetters} from 'vuex'
   export default {
-    props: {},
     computed: {
       visible () {
         return this.$store.state.confirm === 'doing'
@@ -38,8 +24,11 @@
     },
     methods: {
       clickOk: function () {
-        this.$store.commit('CONFIRM_SETTLEMENT')
-
+        this.$tqsdk.confirm_settlement()
+        this.$store.commit('SET_SETTLEMENT', {
+          confirm: 'done',
+          confirmContent: ''
+        })
       }
     }
   }
