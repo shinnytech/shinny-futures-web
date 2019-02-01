@@ -25,7 +25,8 @@ export default class ChartDM extends EventTarget {
     this._right_id = -1 // 真实绘图 right_id
 
     if (this.klinesPath) {
-      this.dm.subscribe(this.klinesPath, this.update.bind(this))
+      tqsdk.on('rtn_data', this.update.bind(this))
+      // this.dm.subscribe(this.klinesPath, this.update.bind(this))
       this.sendToServer()
     }
   }
@@ -71,12 +72,9 @@ export default class ChartDM extends EventTarget {
 
   set symbol (symbol) {
     if (this._symbol === symbol) return
-    // 取消订阅原来的数据
-    if (this.klinesPath) this.dm.unsubscribe(this.klinesPath, this.update)
     // 更新后订阅新的数据
     this._symbol = symbol
     this._left_id = this._right_id = -1
-    if (this.klinesPath) this.dm.subscribe(this.klinesPath, this.update.bind(this))
     this.sendToServer()
   }
 
@@ -86,12 +84,8 @@ export default class ChartDM extends EventTarget {
 
   set duration (duration) {
     if (this._duration === duration) return
-    // 取消订阅原来的数据
-    if (this.klinesPath) this.dm.unsubscribe(this.klinesPath, this.update)
-    // 更新后订阅新的数据
     this._duration = duration
     this._left_id = this._right_id = -1
-    if (this.klinesPath) this.dm.subscribe(this.klinesPath, this.update.bind(this))
     this.sendToServer()
   }
 
@@ -104,15 +98,15 @@ export default class ChartDM extends EventTarget {
   }
 
   get quote () {
-    return this._symbol ? this.dm.getQuote(this.symbol) : null
+    return this._symbol ? this.dm.get_quote(this.symbol) : null
   }
 
   get chart () {
-    return this.dm.getByPath('charts/' + ChartDM.CHART_ID)
+    return this.dm.get_by_path('charts/' + ChartDM.CHART_ID)
   }
 
   get klines () {
-    return (this._symbol && this._duration) ? this.dm.getKlines(this._symbol, this._duration) : null
+    return (this._symbol && this._duration) ? this.dm.get_klines(this._symbol, this._duration) : null
   }
 
   get ticks () {

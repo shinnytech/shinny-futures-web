@@ -112,23 +112,7 @@
     },
     methods: {
       querySearch (queryString, cb) {
-        let results = []
-        if (queryString && this.$tqsdk.isQuotesInfoReady){
-          queryString = queryString.toLowerCase()
-          for (let s in this.$tqsdk.quotesInfo) {
-            let symbol = this.$tqsdk.quotesInfo[s]
-            if (symbol.expired || symbol.class !== 'FUTURE') continue
-            if (symbol.instrument_id.toLowerCase().includes(queryString) || symbol.ins_name.toLowerCase().includes(queryString)) results.push(symbol.instrument_id)
-          }
-          if (results.length === 0){
-            for (let s in this.$tqsdk.quotesInfo) {
-              let symbol = this.$tqsdk.quotesInfo[s]
-              if (symbol.expired || symbol.class !== 'FUTURE') continue
-              if (symbol.py.includes(queryString)) results.push(symbol.instrument_id)
-            }
-          }
-        }
-        this.searchResult = results
+        this.searchResult = this.$tqsdk.get_quotes_by_input(queryString)
       },
       handleSelectInstrument (item) {},
       insertOrder (direction, offset) {

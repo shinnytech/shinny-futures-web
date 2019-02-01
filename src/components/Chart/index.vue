@@ -98,8 +98,7 @@
     watch: {
       instrumentId: {
         handler(newVal, oldVal) {
-          tqsdk.subscribe_quote([this.instrumentId])
-//          this.$store.commit('SUBSCRIBE_QUOTE', [this.instrumentId])
+          this.$tqsdk.subscribe_quote([this.instrumentId])
           if (this.chart) this.chart.symbol = newVal
         },
         immediate: true
@@ -147,8 +146,8 @@
           width: chartWidth,
           height: chartHeight,
           margin: margin,
-          dm: DM,
-          ws: QuoteWs,
+          dm: this.$tqsdk,
+          ws: this.$tqsdk.quotesWs,
           instrumentId: this.instrumentId,
           duration: this.duration,
           mainPlotType: 'candle', // 'ohlc' 'hollowCandle'
