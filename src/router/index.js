@@ -1,29 +1,33 @@
 import Vue from 'vue'
-import router from 'vue-router'
-import Index from "../view/index.vue";
-import login from "../view/login.vue";
-import trade from "../view/trade.vue";
-import stock from "../components/trade-view/index.vue";
+import Router from 'vue-router'
+import Quotes from '../views/Quotes.vue'
+import User from '../views/User.vue'
+import Chart from '../views/Charts.vue'
+import Tags from '../store/tags'
 
-Vue.use(router)
+Vue.use(Router)
 
-export default new router({
-    mode: 'history',
-    routes: [{
-        path: '/',
-        name: 'index',
-        component: Index
-    }, {
-        path: '/login',
-        name: 'login',
-        component: login
-    }, {
-        path: '/stock',
-        name: 'stock',
-        component: stock
-    }, {
-        path: '/trade',
-        name: 'trade',
-        component: trade
+export default new Router({
+  routes: [
+    {
+      path: '/quotes/:tag',
+      name: 'quotes',
+      components: {
+        quotes: Quotes,
+        user: User
+      }
+    },
+    {
+      path: '/charts/:instrument_id',
+      name: 'charts',
+      components: {
+        quotes: Chart,
+        // quotes: () => import(/* webpackChunkName: "Charts" */ './views/Charts.vue'), // lazy-loaded
+        user: User
+      }
+    },
+    {
+      path: '/*',
+      redirect: '/quotes/' + Tags[0].id  // DefaultTag
     }]
 })
