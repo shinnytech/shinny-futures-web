@@ -2,7 +2,7 @@
 
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-[查看在线 Demo](https://elizabethma.github.io/shinny-futures-web/)
+[查看在线 Demo](https://shinnytech.github.io/shinny-futures-web/)
 
 ## 期货在线交易系统
 

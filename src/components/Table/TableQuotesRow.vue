@@ -2,8 +2,8 @@
     <tr @click="handlerClick" @dblclick="handlerDbClick" >
         <!-- @contextmenu="handlerRowContextmenu" -->
         <td>
-            <div>{{ins_name}}</div>
-            <div class="appendix">{{ins_id}}</div>
+            <div>{{ins_id}}</div>
+            <!--<div class="appendix">{{ins_id}}</div>-->
         </td>
         <td v-for="(item, index) in tableCol" v-if="index > 0" v-bind:key="index" :class="classNameStr(item)">
             <div class="data-content" :style="styleObj(item)" :data-content="formatter(item)"></div>
@@ -39,12 +39,14 @@
         this.priceDecs = this.quote.price_decs
         this.priceTick = this.quote.price_tick
         this.ins_name = this.quote.ins_name
-        if (this.quote.class === "FUTURE_CONT") {
-            this.ins_id = this.quote.underlying_symbol
-        } else if (this.quote.class === "FUTURE_INDEX") {
-            this.ins_id = this.quote.underlying_product
+        let matchlist = this.symbol.match(/KQ\.[im]@([a-zA-Z]+)\.([a-zA-Z]+)/)
+        if (matchlist && matchlist[2]) {
+          if (this.quote.class === "FUTURE_CONT"){
+            this.ins_id = matchlist[2] + '主连 (' + this.quote.underlying_symbol.split('.')[1] + ')'
+          }
+          if (this.quote.class === "FUTURE_INDEX") this.ins_id = matchlist[2] + '指数'
         } else {
-            this.ins_id = this.quote.instrument_id
+            this.ins_id = this.quote.ins_id
         }
     },
     mounted() {

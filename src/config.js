@@ -22,9 +22,13 @@ if (process.env.NODE_ENV === 'development') {
 
 const QuotesTableRow = [
   {
-    name: '合约代码',
+    name: '合约',
     prop: 'instrument_id',
     width: 80
+  },{
+    name: '合约名称',
+    prop: 'ins_name',
+    width: 70
   }, {
     name: '最新价',
     prop: 'last_price',

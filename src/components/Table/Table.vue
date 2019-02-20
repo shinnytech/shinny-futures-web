@@ -138,7 +138,7 @@
 	    }
 	    table th,
 	    table td {
-	        padding: 5px 8px;
+	        padding: 5px 3px;
 	        white-space: nowrap;
 	        border-bottom: 1px solid $table-border-color;
 	        border-right: 1px solid $table-border-color;
