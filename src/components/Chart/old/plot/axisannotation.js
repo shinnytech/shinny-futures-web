@@ -1,6 +1,9 @@
 /**
  * TODO Refactor this to techan.plot.annotation.axis()?
  */
+
+/* eslint-disable */
+/* no-case-declarations */
 export default (d3_svg_axis, d3_scale_linear, accessor_value, plot, plotMixin) => () => {
   // Closure function
   const p = {};
