@@ -10,9 +10,6 @@
 									  @on-search="querySearch"
 									  placeholder="请输入合约"
 									  style="width:200px">
-							<!--<div class="auto-complete-search-result">-->
-								<!--<Option v-for="item in searchResult" :value="item" :key="item">{{ item }}</Option>-->
-							<!--</div>-->
 						</AutoComplete>
 					</FormItem>
 					<FormItem label="手数">
