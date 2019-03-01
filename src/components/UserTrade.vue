@@ -6,11 +6,13 @@
 					<FormItem label="合约">
 						<AutoComplete clearable
 									  v-model="instrumentId"
+									  :data="searchResult"
 									  @on-search="querySearch"
-									  placeholder="请输入合约" style="width:200px">
-							<div class="auto-complete-search-result">
-								<Option v-for="item in searchResult" :value="item" :key="item">{{ item }}</Option>
-							</div>
+									  placeholder="请输入合约"
+									  style="width:200px">
+							<!--<div class="auto-complete-search-result">-->
+								<!--<Option v-for="item in searchResult" :value="item" :key="item">{{ item }}</Option>-->
+							<!--</div>-->
 						</AutoComplete>
 					</FormItem>
 					<FormItem label="手数">
@@ -67,6 +69,7 @@
 		data() {
 			return {
 				split: 0.3,
+				instrumentId: '',
 				searchResult: [],
 				selectedTab: 'accounts', // accounts positions orders trades
 				volume: 1,
@@ -82,6 +85,7 @@
 				// 订阅事件，任何地方选中某行，都会更新这个组件
 				if (mutation.type === 'SET_SELECTED_SYMBOL') {
 					let quote = this.$tqsdk.get_quote(mutation.payload)
+					this.instrumentId = mutation.payload
 					if (quote) {
 						this.priceTick = Number(quote.price_tick)
 						this.limitPrice = Number(quote.last_price)
@@ -95,28 +99,21 @@
 		computed: {
 			height: function () {
 				return (this.$root.windowHeight * (1 - this.$root.appSplit) - 44) + ''
-			},
-			instrumentId: {
-				get: function () {
-					return this.innerInstrumentId
-				},
-				set: function (v) {
-					this.$store.commit('SET_SELECTED_SYMBOL', v)
-				}
-			},
-			...mapGetters({
-				innerInstrumentId: 'getSelectedInstrumentId'
-			})
+			}
 		},
 		methods: {
 			querySearch(queryString, cb) {
-				this.searchResult = this.$tqsdk.get_quotes_by_input(queryString)
+				if (this.$tqsdk.quotesInfo.hasOwnProperty(queryString)) {
+					// queryString 是某个合约 Id
+					this.searchResult = null
+				} else {
+					this.searchResult = this.$tqsdk.get_quotes_by_input(queryString)
+				}
 			},
 			handleSelectInstrument(item) {
 			},
 			insertOrder(direction, offset) {
 				let quote = this.$tqsdk.get_quote(this.instrumentId)
-				console.log(this.limitPrice)
 				this.$tqsdk.insert_order({
 					exchange_id: quote.exchange_id,
 					ins_id: quote.ins_id,
