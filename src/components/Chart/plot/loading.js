@@ -22,7 +22,7 @@ export default class Loading{
   }
 
   set show (show) {
-    this._isShow = show
+    this._isShow = !!show
     this.textG.attr("visibility", this._isShow ? "visible" : "hidden")
   }
 
@@ -31,8 +31,8 @@ export default class Loading{
   }
 
   set text (t) {
-    this._text = t
-    this.textG.text(String(t))
+    this._text = String(t)
+    this.textG.text(this._text)
   }
 
 }

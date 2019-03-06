@@ -1,14 +1,6 @@
 // type [candle, dot, line, bar, colorBar]
-const UpDown = {
-	up: (d) => d.open <= d.close,
-	down: (d) => d.open > d.close,
-}
 
-const UpDownEqual = {
-	up: (d) => d.open < d.close,
-	down: (d) => d.open > d.close,
-	equal: (d) => d.open === d.close
-}
+import {UpDown, UpDownEqualKeys, UpDownKeys} from '../Utils'
 
 class Indicator {
 	static HollowBarDiff = 0.5
@@ -31,12 +23,12 @@ class Indicator {
 			let pathName = this.calculator.paths[i].name
 			let pathType = this.calculator.paths[i].type
 			if (pathType === 'colorBar') {
-				Object.keys(UpDown).forEach(k => {
+				UpDownKeys.forEach(k => {
 					this.pathClasses.push([this.name, pathName, k].join('.'))
 				})
 			} else if (pathType === 'candle') {
 				['line', 'body'].forEach(k1 => {
-					Object.keys(UpDownEqual).forEach(k2 => {
+					UpDownEqualKeys.forEach(k2 => {
 						this.pathClasses.push([this.name, pathName, k1, k2].join('.'))
 					})
 				})
@@ -72,7 +64,7 @@ class Indicator {
 				let max = this.plot.yScale(0)
 				for (let i = left_id; i <= right_id; i++) {
 					if (!this.calculator[pathName][i]) continue
-					Object.keys(UpDown).forEach(k => {
+					UpDownKeys.forEach(k => {
 						if (k(this.chartDm.klines.data[i])) {
 							let path = this.linePath(this.calculator[pathName][i], max, i, k === 'down' ? Indicator.HollowBarDiff : 0)
 							paths[pathClasses + '.' + k] += path

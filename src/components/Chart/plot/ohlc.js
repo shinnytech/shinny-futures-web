@@ -1,60 +1,48 @@
-import Plot from './plot'
+import {UpDownEqual, UpDownEqualKeys, ArrayJoin} from '../Utils'
 
-const UpDownEqual = Plot.UpDownEqual()
+class OhlcPlot {
+	constructor(opts) {
+		this.name = opts.name ? opts.name : (new Date().getTime())
+		this.plot = opts.plot ? opts.plot : null
+		this.chartDm = this.plot.chartDm
+		this.types = ['line', 'body']
+	}
 
-class OhlcPlot extends Plot {
-  constructor (opts){
-    super(opts)
-    this.init()
-  }
+	createPaths() {
+		this.paths = []
+		UpDownEqualKeys.forEach(k => this.paths.push([this.name, 'body', k].join('.')))
+		return this.paths
+	}
 
-  init(){
-    Object.keys(UpDownEqual).forEach(key => {
-      this.appendPlotTypePath([this.name, key]);
-    })
-  }
+	calcPaths(left_id, right_id, data) {
+		if (!this.plot.yScale || !this.plot.xScale || !this.chartDm) return
+		let _path = {}
+		this.paths.forEach(k => _path[k] = '')
+		for (let i = left_id; i <= right_id; i++) {
+			if (!data[i]) continue
+			UpDownEqualKeys.forEach(key => {
+				if (UpDownEqual[key](data[i])) {
+					_path[[this.name, 'body', key].join('.')] += this.bodyPath(data[i], i)
+				}
+			})
+		}
+		return _path
+	}
 
-  bodyPath (d, id){
-    let o = this.yScale(d.open)
-    let c = this.yScale(d.close)
-    let h = this.yScale(d.high)
-    let l = this.yScale(d.low)
-    let x = this.xScale(id)
-    let xL = x + this.barPadding
-    let xC = x + this.barWidth / 2
-    let xR = x + this.barWidth - this.barPadding
-    let path = `M ${xL} ${o} L ${xC} ${o}`
-    path += `M ${xC} ${l} L ${xC} ${h}`
-    path += `M ${xC} ${c} L ${xR} ${c}`
-    return path
-  }
-
-  redraw(left_id, right_id) {
-    let _path = {}
-    Object.keys(UpDownEqual).forEach(key => _path[key] = '')
-
-    let min = Infinity, max = -Infinity
-    for (let i = left_id; i<= right_id; i++) {
-      let d = this.data[i]
-      min = Math.min(min, d.low)
-      max = Math.max(max, d.high)
-    }
-    this.yScale.domain([min, max])
-    this.g.selectAll("g.y.axis").call(this.yAxis)
-
-    for (let i = left_id; i<= right_id; i++) {
-      let d = this.data[i]
-      Object.keys(UpDownEqual).forEach(key => {
-        if (UpDownEqual[key](d)) {
-          _path[key] += this['bodyPath'](d, i)
-        }
-      })
-    }
-
-    Object.keys(UpDownEqual).forEach(key => {
-      this.g.select(`path.${Plot.ArrayJoin([this.name, key], '.')}`).attr('d', _path[key])
-    })
-  }
+	bodyPath(d, id) {
+		let o = this.plot.yScale(d.open)
+		let c = this.plot.yScale(d.close)
+		let h = this.plot.yScale(d.high)
+		let l = this.plot.yScale(d.low)
+		let x = this.plot.xScale(id)
+		let xL = x + this.chartDm.barPadding
+		let xC = x + this.chartDm.barWidth / 2
+		let xR = x + this.chartDm.barWidth - this.chartDm.barPadding
+		let path = `M ${xL} ${o} L ${xC} ${o}`
+		path += `M ${xC} ${l} L ${xC} ${h}`
+		path += `M ${xC} ${c} L ${xR} ${c}`
+		return path
+	}
 
 }
 

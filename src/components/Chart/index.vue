@@ -1,5 +1,5 @@
 <template>
-	<div class="chart" :style="{height: height + 'px'}" v-on:keyup="onKeyUp">
+	<div class="chart" :style="{height: height + 'px'}">
 		<RadioGroup size="small" type="button" v-model="selectedPeriod">
 			<Radio v-for="item in periods" :key="item" :label="item">
 				{{item}}
@@ -11,59 +11,68 @@
 		<Checkbox label="ma" v-model="indicators.ma30.show" v-on:on-change="onchange('ma30')">MA30</Checkbox>
 		<Checkbox label="boll" v-model="indicators.boll.show" v-on:on-change="onchange('boll')">BOLL</Checkbox>
 
-		<div id="CHART" ref="CHART" :style="{height: height - 30 + 'px'}">
+		<Dropdown v-on:on-click="onSelectedItem">
+			<a href="javascript:void(0)">
+				K线样式({{selectedItem}})
+				<Icon type="ios-arrow-down"></Icon>
+			</a>
+			<DropdownMenu slot="list" >
+				<DropdownItem name="candle" :selected="selectedItem === 'candle'" >Candles</DropdownItem>
+				<DropdownItem name="ohlc" :selected="selectedItem === 'ohlc'">Bars</DropdownItem>
+			</DropdownMenu>
+		</Dropdown>
 
-		</div>
+		<div id="CHART" ref="CHART" :style="{height: height - 30 + 'px'}"></div>
 	</div>
 </template>
 
 <script>
-	import * as d3 from 'd3'
 	import ChartSet from './index'
-
-
+	// 不同周期对应秒数
 	const Periods = {
-		'5s': 5,
-		'10s': 10,
-		'30s': 30,
-		'1m': 60,
-		'5m': 60 * 5,
-		'15m': 60 * 15,
-		'30m': 60 * 30,
-		'1H': 60 * 60,
-		'1D': 60 * 60 * 24,
+		'5s': 5 * 1e9,
+		'1m': 60 * 1e9,
+		'5m': 60 * 5 * 1e9,
+		'15m': 60 * 15 * 1e9,
+		'30m': 60 * 30 * 1e9,
+		'1H': 60 * 60 * 1e9,
+		'1D': 60 * 60 * 24 * 1e9
 	}
 
 	export default {
 		name: 'Chart',
-		components: {},
 		data() {
 			return {
 				width: this.$root.windowWidth,
 				periods: Object.keys(Periods),
 				selectedPeriod: '1m',
+				selectedItem: 'candle',
 				indicators: {
 					'ma3': {
 						id: 'ma3',
 						name: 'ma',
+						type: 'ma',
 						params: 3,
 						show: true
 					},
 					'ma10': {
 						id: 'ma10',
 						name: 'ma',
+						type: 'ma',
 						params: 10,
 						show: true
 					},
 					'ma30': {
 						id: 'ma30',
 						name: 'ma',
+						type: 'ma',
 						params: 30,
 						show: true
 					},
 					'boll': {
 						id: 'boll',
 						name: 'boll',
+						type: 'boll',
 						params: {n: 3, p: 5},
 						show: true
 					},
@@ -72,7 +81,7 @@
 		},
 		computed: {
 			duration() {
-				return Periods[this.selectedPeriod] * 1e9
+				return Periods[this.selectedPeriod]
 			}
 		},
 		props: {
@@ -89,23 +98,34 @@
 		},
 		methods: {
 			onchange: function (indicator_name) {
-				this.chart.showIndicator(this.indicators[indicator_name])
+				this.chart.showPlot(this.indicators[indicator_name])
 			},
-			onKeyUp(e) {
-				console.log('onKeyUp', e)
+			onSelectedItem: function (new_item_name) {
+				this.chart.showPlot({
+					id: this.selectedItem, show: false
+				})
+			 	this.selectedItem = new_item_name
+				this.chart.showPlot({
+					id: new_item_name, show: true
+				})
+			},
+			keyUpHandler(e) {
+				if (e.key === "Escape") {
+					this.$router.go(-1)
+				}
 			},
 		},
 		watch: {
 			instrumentId: {
 				handler(newVal, oldVal) {
 					this.$tqsdk.subscribe_quote([this.instrumentId])
-					if (this.chart) this.chart.symbol = newVal
+					if (this.chart) this.chart.symbol(newVal)
 				},
 				immediate: true
 			},
 			duration: {
 				handler(newVal, oldVal) {
-					if (this.chart) this.chart.duration = newVal
+					if (this.chart) this.chart.duration(newVal)
 				},
 				immediate: true
 			},
@@ -120,14 +140,10 @@
 			}
 		},
 		activated() {
-			console.log('activated')
-//      this.$nextTick(function () {
-//        this.chart.symbol = this.instrumentId
-//        this.chart.duration = this.duration
-//      })
+			document.addEventListener('keyup', this.keyUpHandler, true)
 		},
 		deactivated() {
-			console.log('deactivated')
+			document.removeEventListener('keyup', this.keyUpHandler, true)
 		},
 		mounted() {
 			this.$on('global:resize', function () {
@@ -135,6 +151,8 @@
 				this.chart.width = this.$refs.CHART.clientWidth
 				this.chart.draw()
 			})
+
+
 			this.$nextTick(function () {
 				// Code that will run only after the entire view has been rendered
 				let chartHeight = this.$refs.CHART.clientHeight // this.height - 30 - 2
@@ -146,19 +164,16 @@
 					width: chartWidth,
 					height: chartHeight,
 					margin: margin,
-					dm: this.$tqsdk,
-					ws: this.$tqsdk.quotesWs,
+					tqsdk: this.$tqsdk,
 					instrumentId: this.instrumentId,
 					duration: this.duration,
-					mainPlotType: 'candle', // 'ohlc' 'hollowCandle'
+					mainPlotType: 'candle', // 'ohlc' 'candle' 'day'
 				})
+
 				for (let k in this.indicators) {
 					this.chart.addIndicator(this.indicators[k])
 				}
 			})
-		},
-		destroyed() {
-			console.log('destroyed')
 		}
 	}
 </script>
@@ -166,7 +181,7 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
 	#CHART {
-		border: 1px solid $table-border-color;
+		/*<!--border: 1px solid $table-border-color;-->*/
 		border-radius: 4px;
 		width: 100%;
 		margin-top: 2px;
@@ -195,46 +210,59 @@
 	path.candle {
 		stroke: #000000;
 		stroke-width: 1;
+
+		&.body {
+			&.up {
+				stroke-width: 0;
+				fill: #FF0000;
+			}
+			&.down {
+				stroke-width: 0;
+				fill: #00AA00;
+			}
+		}
+
+		&.line {
+			&.up {
+				fill: none;
+				stroke: #FF0000;
+			}
+			&.down {
+				fill: none;
+				stroke: #00AA00;
+			}
+		}
 	}
 
-	path.candle.body {
-		stroke-width: 0;
-	}
-
-	path.candle.up {
-		fill: #FF0000;
-		stroke: #FF0000;
-	}
-
-	path.candle.down {
-		fill: #00AA00;
-		stroke: #00AA00;
-	}
-
-	path.candle.equal {
-		stroke-width: 1;
-		stroke: #000000;
+	path.ohlc.body {
+		fill: none;
+		&.up {
+			stroke: #FF0000;
+		}
+		&.down {
+			stroke: #00AA00;
+		}
+		&.equal {
+			stroke: #000000;
+		}
 	}
 
 	//
 	path.volume {
 		fill: none;
 		stroke-width: 0;
-	}
-
-	path.volume.body {
-		fill: #FFFFFF;
-	}
-
-	path.volume.up {
-		fill: #FF0000;
-		stroke: #FF0000;
-	}
-
-	path.volume.down {
-		stroke-width: 1;
-		stroke: #00AA00;
-		/*fill: #00AA00;*/
+		&.body {
+			fill: #FFFFFF;
+		}
+		&.up {
+			fill: #FF0000;
+			stroke: #FF0000;
+		}
+		&.down {
+			stroke-width: 1;
+			stroke: #00AA00;
+			/*fill: #00AA00;*/
+		}
 	}
 
 	path.oi {
@@ -261,12 +289,14 @@
 	}
 
 	// boll
-	path.top {
-		stroke: darkred;
-	}
+	path.boll{
+		&.top {
+			stroke: darkred;
+		}
 
-	path.bottom {
-		stroke: darkblue;
+		&.bottom {
+			stroke: darkblue;
+		}
 	}
 
 	.close.annotation.up path {
@@ -391,4 +421,18 @@
 	.tradearrow path.highlight.sell {
 		stroke: #9900FF;
 	}
+
+	.y.annotation.left path {
+		fill: #00AA00;
+	}
+
+	.y.annotation.right path {
+		fill: #FF0000;
+	}
+
+	.x.annotation path {
+		fill: #DDD80E;
+	}
+
+
 </style>
