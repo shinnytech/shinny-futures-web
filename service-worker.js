@@ -14,10 +14,10 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/shinny-futures-web/precache-manifest.67258989c020d419efe66f5f8fe66e00.js"
+  "/shinny-futures-web/precache-manifest.26e88a8dd72921dfa8b606b71f183314.js"
 );
 
-workbox.core.setCacheNameDetails({prefix: "shinny-futures-web-alpha"});
+workbox.core.setCacheNameDetails({prefix: "shinny-futures-web"});
 
 /**
  * The workboxSW.precacheAndRoute() method efficiently caches and responds to
