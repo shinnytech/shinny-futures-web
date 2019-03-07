@@ -10,6 +10,8 @@ let tqsdk = new TQSDK({
 	prefix: 'web'
 })
 
+window.tqsdk = tqsdk
+
 const VERSION = Number(Vue.version.split('.')[0])
 const NOOP = () => {
 }
@@ -36,8 +38,9 @@ function mixinEvents(Vue) {
 			if (!tqVmEventMap[vm._uid]) tqVmEventMap[vm._uid] = {}
 			let tq_eventName = eventName.match(/^tqsdk:(.*)/)[1]
 			if (!tqVmEventMap[vm._uid][tq_eventName]) tqVmEventMap[vm._uid][tq_eventName] = []
-			tqVmEventMap[vm._uid][tq_eventName].push(fn)
-			tqsdk.on(tq_eventName, fn.bind(vm))
+			let temp_fn = fn.bind(vm)
+			tqVmEventMap[vm._uid][tq_eventName].push(temp_fn)
+			tqsdk.on(tq_eventName, temp_fn)
 		} else {
 			on.call(vm, eventName, fn)
 		}
