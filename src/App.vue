@@ -1,38 +1,9 @@
 <template>
 	<Layout id="shinny-app">
-		<Sider class="sider" width="42">
-			<Tooltip v-if="isShowBackBtn" content="返回" placement="right">
-				<Button type="text" size='small' @click="$router.go(-1)">
-					<Icon type="md-return-left" size="24"/>
-				</Button>
-			</Tooltip>
-			<Tooltip content="设置" placement="right">
-				<Button type="text" size='small' @click="isShowSettingModel = true">
-					<Icon type="md-settings" size="24"/>
-				</Button>
-				<Modal v-model="isShowSettingModel"
-					   title="设置"
-					   :scrollable="true"
-					   @on-ok="onClickOk"
-					   @on-cancel="onClickCancel"
-					   @on-visible-change="onVisibleChange"
-				>
-
-				</Modal>
-			</Tooltip>
-			<Tooltip content="打开天勤主页" placement="right">
-				<Button type="text" size='small' to="https://www.shinnytech.com/tianqin/" target="_blank">
-					<Icon type="md-home" size="24"/>
-				</Button>
-			</Tooltip>
-
-		</Sider>
 		<Content class="content">
 			<Split v-model="$root.appSplit" mode="vertical">
 				<div slot="top" class="split-pane">
-					<keep-alive>
-						<router-view name="quotes"></router-view>
-					</keep-alive>
+					<router-view name="quotes"></router-view>
 				</div>
 				<div slot="trigger" class="split-horizontal">
 					<div class="split-horizontal-dots">

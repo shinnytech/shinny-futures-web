@@ -1,5 +1,11 @@
 <template>
 	<div class="chart" :style="{height: height + 'px'}">
+		<Tooltip content="返回(Esc)" placement="right-end">
+			<Button shape="circle" icon="md-return-left" @click="goBack"></Button>
+		</Tooltip>
+
+		&nbsp;
+
 		<RadioGroup size="small" type="button" v-model="selectedPeriod">
 			<Radio v-for="item in periods" :key="item" :label="item">
 				{{item}}
@@ -16,8 +22,8 @@
 				K线样式({{selectedItem}})
 				<Icon type="ios-arrow-down"></Icon>
 			</a>
-			<DropdownMenu slot="list" >
-				<DropdownItem name="candle" :selected="selectedItem === 'candle'" >Candles</DropdownItem>
+			<DropdownMenu slot="list">
+				<DropdownItem name="candle" :selected="selectedItem === 'candle'">Candles</DropdownItem>
 				<DropdownItem name="ohlc" :selected="selectedItem === 'ohlc'">Bars</DropdownItem>
 			</DropdownMenu>
 		</Dropdown>
@@ -104,7 +110,7 @@
 				this.chart.showPlot({
 					id: this.selectedItem, show: false
 				})
-			 	this.selectedItem = new_item_name
+				this.selectedItem = new_item_name
 				this.chart.showPlot({
 					id: new_item_name, show: true
 				})
@@ -114,12 +120,23 @@
 					this.$router.go(-1)
 				}
 			},
+			goBack(){
+				this.$router.go(-1)
+			},
+			update(){
+				console.log('vue update')
+				if (this.chart) {
+					this.chart.update()
+				}
+			}
 		},
 		watch: {
 			instrumentId: {
 				handler(newVal, oldVal) {
-					this.$tqsdk.subscribe_quote([this.instrumentId])
-					if (this.chart) this.chart.symbol(newVal)
+					if (this.$route.name === "charts") {
+						this.$tqsdk.subscribe_quote([this.instrumentId])
+						if (this.chart) this.chart.symbol(newVal)
+					}
 				},
 				immediate: true
 			},
@@ -132,26 +149,25 @@
 			height: {
 				handler(newVal, oldVal) {
 					if (this.chart) {
-						this.chart.height = this.$refs.CHART.clientHeight
+						this.chart.height(this.$refs.CHART.clientHeight)
 						this.chart.draw()
 					}
 				},
 				immediate: true
 			}
 		},
-		activated() {
-			document.addEventListener('keyup', this.keyUpHandler, true)
-		},
-		deactivated() {
+		beforeDestroy(){
 			document.removeEventListener('keyup', this.keyUpHandler, true)
 		},
 		mounted() {
+			document.addEventListener('keyup', this.keyUpHandler, true)
+			this.$on('tqsdk:rtn_data', this.update)
+
 			this.$on('global:resize', function () {
-				this.chart.height = this.$refs.CHART.clientHeight
-				this.chart.width = this.$refs.CHART.clientWidth
+				this.chart.height(this.$refs.CHART.clientHeight)
+				this.chart.width(this.$refs.CHART.clientWidth)
 				this.chart.draw()
 			})
-
 
 			this.$nextTick(function () {
 				// Code that will run only after the entire view has been rendered
@@ -289,7 +305,7 @@
 	}
 
 	// boll
-	path.boll{
+	path.boll {
 		&.top {
 			stroke: darkred;
 		}

@@ -94,7 +94,7 @@ class ChartSet {
 
 		this.init()
 
-		opts.tqsdk.on('rtn_data', this.update.bind(this))
+
 
 
 		// 0 background
@@ -281,7 +281,7 @@ class ChartSet {
 		// 图布局重新计算
 		this.plotsManager.width = this.innerWidth
 		// 图布局放置
-		this.mainChart.width = this.plotsManager.positions[0].width
+		this.mainChart.width(this.plotsManager.positions[0].width)
 		for (let sub in this.subCharts) {
 			this.subCharts[sub].width = this.plotsManager.positions[1].width
 		}
@@ -300,11 +300,11 @@ class ChartSet {
 		// 图布局重新计算
 		this.plotsManager.height = this.innerHeight
 		// 图布局放置
-		this.mainPlot.height = this.plotsManager.positions[0].height
-		this.mainPlot.top = this.plotsManager.positions[0].top
+		this.mainChart.height(this.plotsManager.positions[0].height)
+		this.mainChart.top(this.plotsManager.positions[0].top)
 		for (let sub in this.subCharts) {
-			this.subCharts[sub].height = this.plotsManager.positions[1].height
-			this.subCharts[sub].top = this.plotsManager.positions[1].top
+			this.subCharts[sub].height(this.plotsManager.positions[1].height)
+			this.subCharts[sub].top(this.plotsManager.positions[1].top)
 		}
 		// 鼠标交互层布局
 		this.crosshair.height(this.innerHeight)
